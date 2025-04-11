@@ -30,19 +30,21 @@ enum CommandType : uint8_t {
     CMD_SENSOR_TOGGLE,
 };
 
-struct RawCommand {
+struct CommandMessagePayload {
     union {
         uint64_t raw;
-        struct inner {
-            // first two bytes
+        struct {
+            // meta information (4 bytes)
             CommandType type;
             MCUID mcuID;
             uint16_t commandId;
-            // last 4 bytes
+            // last 4 bytes for command-specific things
             uint8_t payload[4];
-        }
-    }
+        };
+    };
 };
+
+}
 
 
 

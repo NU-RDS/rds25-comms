@@ -9,7 +9,7 @@ struct RawCommsMessage {
     uint8_t length;
     union {
         uint64_t payload;
-        uint8_t payloadBytes[8]
+        uint8_t payloadBytes[8];
     };
 };
 
