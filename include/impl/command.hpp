@@ -14,6 +14,7 @@
 #include <stdint.h>
 
 #include "id.hpp"
+#include "command.hpp"
 
 namespace comms {
 
@@ -26,7 +27,7 @@ enum CommandType : uint8_t {
     CMD_MOTOR_CONTROL,
 
     // Sensor-Board Specific Commands
-    CMD_SENSOR_DISABLE,
+    CMD_SENSOR_TOGGLE,
 };
 
 struct RawCommand {
@@ -36,8 +37,9 @@ struct RawCommand {
             // first two bytes
             CommandType type;
             MCUID mcuID;
-            // last 6 bytes
-            uint8_t payload[6];
+            uint16_t commandId;
+            // last 4 bytes
+            uint8_t payload[4];
         }
     }
 };
