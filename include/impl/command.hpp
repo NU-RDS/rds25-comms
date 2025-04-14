@@ -13,8 +13,8 @@
 
 #include <stdint.h>
 
-#include "id.hpp"
 #include "command.hpp"
+#include "id.hpp"
 
 namespace comms {
 
@@ -39,13 +39,48 @@ struct CommandMessagePayload {
             MCUID mcuID;
             uint16_t commandId;
             // last 4 bytes for command-specific things
-            uint8_t payload[4];
+            uint32_t payload;
         };
     };
+
+    CommandMessagePayload(CommandType cType, MCUID mid, uint16_t cid, uint32_t data) : type(cType), mcuID(mid), commandId(cid), payload(data) {}
 };
 
-}
+enum MotorControlCommandType : uint8_t {
+    MC_CMD_POS,
+    MC_CMD_VEL
+};
 
+struct MotorControlCommand {
+    MCUID id;
+    MotorControlCommandType type;
+    uint32_t payload;
 
+    static MotorControlCommand position(MCUID id, float position) {
+        uint32_t payload = 0;
+        memcpy(&payload, &position, sizeof(float));
+        return MotorControlCommand(id, MC_CMD_POS, payload);
+    }
+
+    static MotorControlCommand velocity(MCUID id, float speed) {
+        uint32_t payload = 0;
+        memcpy(&payload, &speed, sizeof(float));
+        return MotorControlCommand(id, MC_CMD_POS, payload);
+    }
+
+    RawCommsMessage toRaw() const {
+        CommandMessagePayload payloadCmd(CMD_MOTOR_CONTROL, id, payload);
+        return (RawCommsMessage) {
+            .id = MessageIDs::MID_COMMAND_HL,
+            .length = 8,
+            .payload = payloadCmd.raw
+        };
+    }
+
+   private:
+    MotorControlCommand(MCUID id, MotorControlCommandType type, uint32_t payload) : id(id), type(type), payload(payload) {}
+};
+
+}  // namespace comms
 
 #endif  // __COMMAND_H__
