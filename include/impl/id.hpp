@@ -12,7 +12,7 @@ enum MCUID : uint8_t {
     MCU_LOW_LEVEL_2,
     MCU_LOW_LEVEL_3,
     MCU_SENSOR,
-    MCU_COUNT
+    MCU_INVALID,
 };
 
 enum MessageIDs : uint32_t {
@@ -22,7 +22,7 @@ enum MessageIDs : uint32_t {
     MID_ERROR_LL2 = 0x030,
     MID_HEARTBEAT_REQ = 0x10A,
     MID_HEARTBEAT_RESP0 = 0x110,
-    MID_HEARTBEAT_RESP0 = 0x120,
+    MID_HEARTBEAT_RESP1 = 0x120,
     MID_HEARTBEAT_RESP2 = 0x130,
     MID_COMMAND_HL = 0x200,
     MID_COMMAND_RESP0 = 0x310,
