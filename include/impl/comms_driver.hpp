@@ -5,6 +5,7 @@
 
 #include "stdint.h"
 
+/// @brief The structure of a raw communication message, mostly with CAN in mind
 struct RawCommsMessage {
     uint32_t id;
     uint8_t length;
@@ -14,6 +15,7 @@ struct RawCommsMessage {
     };
 };
 
+/// @brief HAL for Sending/Recieving these Comms messages
 class CommsDriver {
    public:
     virtual void install() { /* no-op */ }

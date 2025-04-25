@@ -37,6 +37,8 @@ enum CommandType : uint8_t {
     CMD_COUNT
 };
 
+/// @brief Exact same memory footprint as the RawCommsMessage Payload (uint64_t)
+/// Used to get a bit of type safety and nice accessors, rather than deal with a bunch of 
 struct CommandMessagePayload {
     union {
         uint64_t raw;
@@ -59,41 +61,21 @@ enum MotorControlCommandType : uint8_t {
     MC_CMD_VEL
 };
 
+/// @brief Exact same memory footprint as the CommandMessagePayload::Payload, used for the "specific things"
+// in side the payload -- this is the inner most layer
 struct MotorControlCommand {
-    MCUID id;
-    MotorControlCommandType type;
-    uint32_t payload;
-
-    static MotorControlCommand position(MCUID id, float position) {
-        uint32_t payload = 0;
-        memcpy(&payload, &position, sizeof(float));
-        return MotorControlCommand(id, MC_CMD_POS, payload);
-    }
-
-    static MotorControlCommand velocity(MCUID id, float speed) {
-        uint32_t payload = 0;
-        memcpy(&payload, &speed, sizeof(float));
-        return MotorControlCommand(id, MC_CMD_POS, payload);
-    }
-
-    // static MotorControlCommand fromRaw(const RawCommsMessage &raw) {
-    //     CommandMessagePayload payload;
-    //     memcpy(&payload.raw, &raw.payload, sizeof(RawCommsMessage));
-    //     return MotorControlCommand(payload.mcuID, payload., payload.payload);
-    // }
-
-    // RawCommsMessage toRaw() const {
-    //     CommandMessagePayload payloadCmd(id, CMD_MOTOR_CONTROL, payload);
-    //     return (RawCommsMessage){
-    //         .id = MessageIDs::MID_COMMAND_HL,
-    //         .length = 8,
-    //         .payload = payloadCmd.raw};
-    // }
-
-   private:
-    MotorControlCommand(MCUID id, MotorControlCommandType type, uint32_t payload) : id(id), type(type), payload(payload) {}
+    union {
+        uint32_t payload;
+        struct {
+            MCUID id;
+            uint8_t motorNumber;
+            uint16_t value;
+        };
+    };
 };
 
+/// @brief Handles specific commands, determines if events are parallizable, etc.
+/// Used to specify "when I recieve this type of command, what should happen?"
 class CommandHandler {
    public:
     virtual void start(const CommandMessagePayload &payload) {}
