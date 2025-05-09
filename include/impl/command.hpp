@@ -82,10 +82,30 @@ struct MotorControlCommand {
         struct {
             MCUID id;
             uint8_t motorNumber;
-            uint16_t value;
+            MotorControlCommandType controlType;
+            uint8_t value;
         };
     };
+
+    MotorControlCommand() : payload(0) {}
+    MotorControlCommand(MCUID id, uint8_t motorNumber, MotorControlCommandType type, uint8_t value) :
+        id(id), motorNumber(motorNumber), controlType(type), value(value) {}
 };
+
+class CommandBuilder {
+   public:
+    static uint16_t __cmdCounter;
+
+    static CommandMessagePayload motorControl(MCUID sender, MotorControlCommand motorCmd) {
+        return CommandMessagePayload(
+            CommandType::CMD_MOTOR_CONTROL,
+            sender,
+            __cmdCounter++,
+            motorCmd.payload);
+    }
+};
+
+uint16_t CommandBuilder::__cmdCounter = 0;
 
 /// @brief Handles specific commands, determines if events are parallizable, etc.
 /// Used to specify "when I recieve this type of command, what should happen?"

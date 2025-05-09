@@ -46,6 +46,10 @@ class CommsController {
         }
     }
 
+    MCUID me() const {
+        return _me;
+    }
+
    private:
     void handleCommand(RawCommsMessage message) {
         Result<CommandMessagePayload> cmdRes = CommandMessagePayload::fromRaw(message);
