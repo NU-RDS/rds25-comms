@@ -68,11 +68,11 @@ bool check(OnError onError, Fs &&...functions) {
     return false;
 }
 
-std::function<void(const char *)> defaultErrorCallback(std::ostream &stream) {
-    return [&stream](const char *error) {
-        stream << "Error: " << error << std::endl;
-    };
-}
+// std::function<void(const char *)> defaultErrorCallback(std::ostream &stream) {
+//     return [&stream](const char *error) {
+//         stream << "Error: " << error << std::endl;
+//     };
+// }
 
 }  // namespace comms
 
