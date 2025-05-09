@@ -6,6 +6,8 @@
 
 using namespace comms;
 
+uint16_t CommandBuilder::__cmdCounter = 0;
+
 CommandBuffer::CommandBuffer() : _currentSlice(CommandSlice::empty()) {
 }
 

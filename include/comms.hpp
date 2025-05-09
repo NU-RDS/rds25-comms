@@ -59,7 +59,12 @@ class CommsController {
             return;
         }
 
+        SenderInformation senderInfo = SenderInformation::getInfo(message.id);
+
         CommandMessagePayload cmd = cmdRes.value();
+
+        COMMS_DEBUG_PRINT("Recieved a command! From %d, command type %d, command id %d\n ", senderInfo.mcu, cmd.type, cmd.commandID);
+
         _cmdBuf.addCommand(cmd);
     }
 

@@ -105,8 +105,6 @@ class CommandBuilder {
     }
 };
 
-uint16_t CommandBuilder::__cmdCounter = 0;
-
 /// @brief Handles specific commands, determines if events are parallizable, etc.
 /// Used to specify "when I recieve this type of command, what should happen?"
 class CommandHandler {
