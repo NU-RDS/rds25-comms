@@ -17,9 +17,10 @@
 #include <functional>
 #include <memory>
 
-#include "comms_driver.hpp"
 #include "command.hpp"
+#include "comms_driver.hpp"
 #include "id.hpp"
+#include "result.hpp"
 
 namespace comms {
 
@@ -38,7 +39,7 @@ enum CommandType : uint8_t {
 };
 
 /// @brief Exact same memory footprint as the RawCommsMessage Payload (uint64_t)
-/// Used to get a bit of type safety and nice accessors, rather than deal with a bunch of 
+/// Used to get a bit of type safety and nice accessors, rather than deal with a bunch of
 struct CommandMessagePayload {
     union {
         uint64_t raw;
@@ -54,6 +55,18 @@ struct CommandMessagePayload {
 
     CommandMessagePayload() : type(CommandType::CMD_INVALID), mcuID(MCUID::MCU_INVALID), commandID(0), payload(0) {}
     CommandMessagePayload(CommandType cType, MCUID mid, uint16_t cid, uint32_t data) : type(cType), mcuID(mid), commandID(cid), payload(data) {}
+
+    static Result<CommandMessagePayload> fromRaw(RawCommsMessage message) {
+        if (SenderInformation::getInfo(message.id) != MessageContentType::MT_COMMAND) {
+            return Result<CommandMessagePayload>::errorResult(
+                "Unable to get command from message! Not a command message");
+        }
+
+        return Result<CommandMessagePayload>::ok(CommandMessagePayload(message.payload));
+    }
+
+   private:
+    CommandMessagePayload(uint64_t raw) : raw(raw) {}
 };
 
 enum MotorControlCommandType : uint8_t {

@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include <map>
+
 namespace comms {
 
 enum MCUID : uint8_t {
@@ -29,6 +31,38 @@ enum MessageIDs : uint32_t {
     MID_COMMAND_RESP1 = 0x320,
     MID_COMMAND_RESP2 = 0x330,
 };
+
+enum MessageContentType : uint8_t {
+    MT_ERROR,
+    MT_HEARTBEAT,
+    MT_COMMAND
+};
+
+struct SenderInformation {
+    MCUID mcu;
+    MessageContentType type;
+
+    static const SenderInformation getInfo(uint32_t id);
+};
+
+inline const std::map<uint32_t, SenderInformation> senderLUT{
+    {MID_ERROR_GLOBAL, {MCU_HIGH_LEVEL, MT_ERROR}},
+    {MID_ERROR_LL0, {MCU_LOW_LEVEL_0, MT_ERROR}},
+    {MID_ERROR_LL1, {MCU_LOW_LEVEL_1, MT_ERROR}},
+    {MID_ERROR_LL2, {MCU_LOW_LEVEL_2, MT_ERROR}},
+    {MID_HEARTBEAT_REQ, {MCU_HIGH_LEVEL, MT_HEARTBEAT}},
+    {MID_HEARTBEAT_RESP0, {MCU_LOW_LEVEL_0, MT_HEARTBEAT}},
+    {MID_HEARTBEAT_RESP1, {MCU_LOW_LEVEL_1, MT_HEARTBEAT}},
+    {MID_HEARTBEAT_RESP2, {MCU_LOW_LEVEL_2, MT_HEARTBEAT}},
+    {MID_COMMAND_HL, {MCU_HIGH_LEVEL, MT_COMMAND}},
+    {MID_COMMAND_RESP0, {MCU_LOW_LEVEL_0, MT_COMMAND}},
+    {MID_COMMAND_RESP1, {MCU_LOW_LEVEL_1, MT_COMMAND}},
+    {MID_COMMAND_RESP2, {MCU_LOW_LEVEL_2, MT_COMMAND}},
+};
+
+inline const SenderInformation SenderInformation::getInfo(uint32_t id) {
+    return senderLUT.at(id);  
+}
 
 }  // namespace comms
 

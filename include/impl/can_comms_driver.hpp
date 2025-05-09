@@ -7,6 +7,8 @@
 
 #include "comms_driver.hpp"
 
+namespace comms {
+
 static FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> _can1;
 static FlexCAN_T4<CAN2, RX_SIZE_256, TX_SIZE_16> _can2;
 
@@ -88,5 +90,7 @@ class TeensyCANDriver : public CommsDriver {
     uint8_t _busNum;
     CANBaudRate _baudRate;
 };
+
+}  // namespace comms
 
 #endif  // __CAN_COMMS_DRIVER_H__

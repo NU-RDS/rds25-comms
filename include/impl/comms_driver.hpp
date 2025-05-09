@@ -5,6 +5,8 @@
 
 #include "stdint.h"
 
+namespace comms {
+
 /// @brief The structure of a raw communication message, mostly with CAN in mind
 struct RawCommsMessage {
     uint32_t id;
@@ -36,5 +38,7 @@ class CommsDriver {
    private:
     std::unordered_map<uint32_t, std::vector<std::function<void(const RawCommsMessage &)>>> _callbackTable;
 };
+
+}
 
 #endif  // __COMMS_DRIVER_H__
