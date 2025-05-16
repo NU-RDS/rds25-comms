@@ -21,7 +21,6 @@ void setup() {
 
 void loop() {
     g_controller.tick();
-    delay(100);  // bad
 }
 
 }  // namespace rx
