@@ -20,9 +20,9 @@ struct RawCommsMessage {
 /// @brief HAL for Sending/Recieving these Comms messages
 class CommsDriver {
    public:
-    virtual void install() { /* no-op */ }
-    virtual void uninstall() { /* no-op */ }
-    virtual void sendMessage(RawCommsMessage &message) { /* no-op */ }
+    virtual void install() = 0;
+    virtual void uninstall() = 0;
+    virtual void sendMessage(const RawCommsMessage &message) = 0;
 
     // message handling for interrupt-based drivers
     void attachRXCallback(uint32_t id, std::function<void(const RawCommsMessage &)> callback) {

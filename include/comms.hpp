@@ -6,6 +6,7 @@
 #include "impl/comms_driver.hpp"
 #include "impl/debug.hpp"
 #include "impl/id.hpp"
+#include "impl/option.hpp"
 
 namespace comms {
 
@@ -20,26 +21,49 @@ class CommsController {
     void sendCommand(CommandMessagePayload payload) {
         RawCommsMessage raw;
         raw.payload = payload.raw;
+
+        // get the id for the message
+        Option<uint32_t> idOpt = SenderInformation::getMessageID(_me, MessageContentType::MT_COMMAND);
+
+        if (idOpt.isNone()) {
+            COMMS_DEBUG_PRINT_ERRORLN("Unable to send a command! No ID found for command messages for me\n");
+            return;
+        }
+
+        raw.id = idOpt.value();
+
+        // Serial.printf("Sending message %u!\n", payload.raw);
         _driver.sendMessage(raw);
     }
 
     void tick() {
-        RawCommsMessage raw;
-        if (!_driver.receiveMessage(&raw)) return;
+        RawCommsMessage message;
+        if (!_driver.receiveMessage(&message)) return;
         // figure out message type it is
-        SenderInformation info = SenderInformation::getInfo(raw.id);
-        // sanity check, but if this is our message, ignore it
-        if (info.mcu == _me) return;
+        Option<SenderInformation> senderInfoOpt = SenderInformation::getInfo(message.id);
+
+        if (senderInfoOpt.isNone()) {
+            COMMS_DEBUG_PRINT_ERROR("Recieved an unregistered ID! 0x%04x\n", message.id);
+            return;
+        }
+
+        SenderInformation info = senderInfoOpt.value();
+
+        if (info.mcu == _me) {
+            COMMS_DEBUG_PRINT_ERRORLN("Recieved a message from self!!!");
+            return;
+        }
+
 
         switch (info.type) {
             case MessageContentType::MT_COMMAND:
-                handleCommand(raw);
+                handleCommand(message);
                 break;
             case MessageContentType::MT_HEARTBEAT:
-                handleHeartbeat(raw);
+                handleHeartbeat(message);
                 break;
             case MessageContentType::MT_ERROR:
-                handleError(raw);
+                handleError(message);
                 break;
             default:
                 break;
@@ -58,8 +82,6 @@ class CommsController {
             COMMS_DEBUG_PRINT_ERROR("Unable to handle command: %s\,", cmdRes.error);
             return;
         }
-
-        SenderInformation senderInfo = SenderInformation::getInfo(message.id);
 
         CommandMessagePayload cmd = cmdRes.value();
 

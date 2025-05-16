@@ -57,7 +57,17 @@ struct CommandMessagePayload {
     CommandMessagePayload(CommandType cType, MCUID mid, uint16_t cid, uint32_t data) : type(cType), mcuID(mid), commandID(cid), payload(data) {}
 
     static Result<CommandMessagePayload> fromRaw(RawCommsMessage message) {
-        if (SenderInformation::getInfo(message.id).type != MessageContentType::MT_COMMAND) {
+        Option<SenderInformation> infoOpt = SenderInformation::getInfo(message.id);
+
+        if (infoOpt.isNone()) {
+            return Result<CommandMessagePayload>::errorResult(
+                "Unable to get command from message! Invalid ID"
+            );
+        }
+
+        SenderInformation senderInfo = infoOpt.value();
+
+        if (senderInfo.type != MessageContentType::MT_COMMAND) {
             return Result<CommandMessagePayload>::errorResult(
                 "Unable to get command from message! Not a command message");
         }

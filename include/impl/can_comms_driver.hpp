@@ -24,6 +24,7 @@ template <uint8_t busNum, CANBaudRate baudRate>
 class TeensyCANDriver : public CommsDriver {
    public:
     void install() {
+        Serial.println("Installing TeensyCANDriver!");
         _busNum = busNum;
         uint32_t baudRateNum = 0;
         switch (baudRate) {
@@ -46,10 +47,16 @@ class TeensyCANDriver : public CommsDriver {
 
         switch (_busNum) {
             case 1:
+                _can1.begin();
                 _can1.setBaudRate(baudRateNum);
+                break;
             case 2:
+                _can2.begin();
                 _can2.setBaudRate(baudRateNum);
+                break;
         }
+
+        Serial.println("Installing TeensyCANDriver!");
     }
 
     void uninstall() {
@@ -58,13 +65,17 @@ class TeensyCANDriver : public CommsDriver {
     void sendMessage(const RawCommsMessage &message) {
         CAN_message_t msg;
         msg.id = message.id;
-        memcpy(msg.buf, message.payload, 8);
+
+        Serial.printf("Sending message with id 0x%04x\n", message.id);
+        // memcpy(msg.buf, &message.payload, 8);
 
         switch (_busNum) {
             case 1:
                 _can1.write(msg);
+                break;
             case 2:
                 _can2.write(msg);
+                break;
         }
     }
 
@@ -74,14 +85,16 @@ class TeensyCANDriver : public CommsDriver {
         switch (_busNum) {
             case 1:
                 found = _can1.read(res);
+                break;
             case 2:
                 found = _can2.read(res);
+                break;
         }
 
         if (!found) return false;
 
         message->id = res.id;
-        memcpy(message->payload, res.buf, 8);
+        memcpy(&message->payload, res.buf, 8);
 
         return true;
     }

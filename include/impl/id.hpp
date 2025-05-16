@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include <map>
+#include "option.hpp"
 
 namespace comms {
 
@@ -42,7 +43,8 @@ struct SenderInformation {
     MCUID mcu;
     MessageContentType type;
 
-    static const SenderInformation getInfo(uint32_t id);
+    static const Option<SenderInformation> getInfo(uint32_t id);
+    static const Option<uint32_t> getMessageID(MCUID sender, MessageContentType type);
 };
 
 inline const std::map<uint32_t, SenderInformation> senderLUT{
@@ -60,8 +62,23 @@ inline const std::map<uint32_t, SenderInformation> senderLUT{
     {MID_COMMAND_RESP2, {MCU_LOW_LEVEL_2, MT_COMMAND}},
 };
 
-inline const SenderInformation SenderInformation::getInfo(uint32_t id) {
-    return senderLUT.at(id);  
+inline const Option<SenderInformation> SenderInformation::getInfo(uint32_t id) {
+    if (senderLUT.find(id) == senderLUT.end()) {
+        // no id
+        return Option<SenderInformation>::none();
+    }
+
+    return Option<SenderInformation>::some(senderLUT.at(id));
+}
+
+inline const Option<uint32_t> SenderInformation::getMessageID(MCUID sender, MessageContentType type) {
+    for (auto const& kv : senderLUT) {
+        if (kv.second.mcu == sender && kv.second.type == type) {
+            return Option<uint32_t>::some(kv.first);
+        }
+    }
+
+    return Option<uint32_t>::none();
 }
 
 }  // namespace comms

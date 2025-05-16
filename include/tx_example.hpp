@@ -1,6 +1,7 @@
 #ifndef __TX_EXAMPLE_H__
 #define __TX_EXAMPLE_H__
 
+#include <Arduino.h>
 #include "comms.hpp"
 
 using namespace comms;
@@ -8,7 +9,7 @@ using namespace comms;
 namespace tx {
 
 // bus num, baudrate
-TeensyCANDriver<1, CANBaudRate::CBR_500KBPS> g_canDriver;
+TeensyCANDriver<2, CANBaudRate::CBR_500KBPS> g_canDriver;
 
 CommsController g_controller{
     g_canDriver,
@@ -16,10 +17,13 @@ CommsController g_controller{
 };
 
 void setup() {
+    Serial.begin(9600);
+    Serial.println("TX Example Start!");
     g_controller.initialize();
 }
 
 void loop() {
+    Serial.println("Loop!");
     g_controller.tick();
 
     MotorControlCommand commandDesc(
