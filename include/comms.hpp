@@ -23,7 +23,7 @@ class CommsController {
         raw.payload = payload.raw;
 
         // get the id for the message
-        Option<uint32_t> idOpt = SenderInformation::getMessageID(_me, MessageContentType::MT_COMMAND);
+        Option<uint32_t> idOpt = MessageInfo::getMessageID(_me, MessageContentType::MT_COMMAND);
 
         if (idOpt.isNone()) {
             COMMS_DEBUG_PRINT_ERRORLN("Unable to send a command! No ID found for command messages for me\n");
@@ -40,20 +40,23 @@ class CommsController {
         RawCommsMessage message;
         if (!_driver.receiveMessage(&message)) return;
         // figure out message type it is
-        Option<SenderInformation> senderInfoOpt = SenderInformation::getInfo(message.id);
+        Option<MessageInfo> senderInfoOpt = MessageInfo::getInfo(message.id);
 
         if (senderInfoOpt.isNone()) {
             COMMS_DEBUG_PRINT_ERROR("Recieved an unregistered ID! 0x%04x\n", message.id);
             return;
         }
 
-        SenderInformation info = senderInfoOpt.value();
+        MessageInfo info = senderInfoOpt.value();
 
-        if (info.mcu == _me) {
+        if (info.sender == _me) {
             COMMS_DEBUG_PRINT_ERRORLN("Recieved a message from self!!!");
             return;
         }
 
+        if (!info.shouldListen(_me)) {
+            return; // no need to listen
+        }
 
         switch (info.type) {
             case MessageContentType::MT_COMMAND:
