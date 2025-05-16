@@ -55,7 +55,7 @@ class CommsController {
         }
 
         if (!info.shouldListen(_me)) {
-            return; // no need to listen
+            return;  // no need to listen
         }
 
         switch (info.type) {
@@ -90,7 +90,22 @@ class CommsController {
 
         COMMS_DEBUG_PRINT("Recieved a command! From %d, command type %d, command id %d\n ", senderInfo.mcu, cmd.type, cmd.commandID);
 
-        _cmdBuf.addCommand(cmd);
+        switch (cmd.type) {
+            case CMD_BEGIN:
+                _cmdBuf.startExecution();
+                break;
+            case CMD_STOP:
+                // stop
+                break;
+            case CMD_MOTOR_CONTROL:
+                _cmdBuf.addCommand(cmd);
+            case CMD_SENSOR_TOGGLE:
+                // control sensor stream
+                break;
+            default:
+                COMMS_DEBUG_PRINT_ERRORLN("Invalid command recieved!");
+                break;
+        }
     }
 
     void handleHeartbeat(RawCommsMessage message) {

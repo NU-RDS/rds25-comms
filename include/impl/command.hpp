@@ -61,8 +61,7 @@ struct CommandMessagePayload {
 
         if (infoOpt.isNone()) {
             return Result<CommandMessagePayload>::errorResult(
-                "Unable to get command from message! Invalid ID"
-            );
+                "Unable to get command from message! Invalid ID");
         }
 
         MessageInfo senderInfo = infoOpt.value();
@@ -86,32 +85,96 @@ enum MotorControlCommandType : uint8_t {
 
 /// @brief Exact same memory footprint as the CommandMessagePayload::Payload, used for the "specific things"
 // in side the payload -- this is the inner most layer
-struct MotorControlCommand {
+struct MotorControlCommandOpt {
     union {
         uint32_t payload;
         struct {
-            MCUID id;
+            MCUID targetID;
             uint8_t motorNumber;
             MotorControlCommandType controlType;
             uint8_t value;
         };
     };
 
-    MotorControlCommand() : payload(0) {}
-    MotorControlCommand(MCUID id, uint8_t motorNumber, MotorControlCommandType type, uint8_t value) :
-        id(id), motorNumber(motorNumber), controlType(type), value(value) {}
+    MotorControlCommandOpt() : payload(0) {}
+    MotorControlCommandOpt(MCUID targetID, uint8_t motorNumber, MotorControlCommandType type, uint8_t value) : targetID(targetID), motorNumber(motorNumber), controlType(type), value(value) {}
+};
+
+struct BeginExecutionCommandOpt {
+    union {
+        uint32_t payload;
+        struct {
+            MCUID targetID;
+        };
+    };
+
+    BeginExecutionCommandOpt() : payload(0) {}
+    BeginExecutionCommandOpt(MCUID targetID) : targetID(targetID) {}
+};
+
+struct EndExecutionCommandOpt {
+    union {
+        uint32_t payload;
+        struct {
+            MCUID targetID;
+        };
+    };
+
+    EndExecutionCommandOpt() : payload(0) {}
+    EndExecutionCommandOpt(MCUID targetID) : targetID(targetID) {}
+};
+
+struct SensorToggleCommandOpt {
+    union {
+        uint32_t payload;
+        struct {
+            MCUID targetID;
+            uint8_t sensorID;
+            bool enable;
+        };
+    };
+
+    SensorToggleCommandOpt() : payload(0) {}
+    SensorToggleCommandOpt(MCUID targetID, uint8_t sensorID, bool enable) : targetID(targetID), sensorID(sensorID), enable(enable) {}
 };
 
 class CommandBuilder {
    public:
     static uint16_t __cmdCounter;
 
-    static CommandMessagePayload motorControl(MCUID sender, MotorControlCommand motorCmd) {
+    static CommandMessagePayload motorControl(MCUID sender, MotorControlCommandOpt motorCmd) {
         return CommandMessagePayload(
             CommandType::CMD_MOTOR_CONTROL,
             sender,
             __cmdCounter++,
             motorCmd.payload);
+    }
+
+    static CommandMessagePayload endExecution(MCUID sender, BeginExecutionCommandOpt beginCmd) {
+        return CommandMessagePayload(
+            CommandType::CMD_BEGIN,
+            sender,
+            __cmdCounter++,
+            beginCmd.payload
+        );
+    }
+
+    static CommandMessagePayload sensorToggle(MCUID sender, EndExecutionCommandOpt endCmd) {
+        return CommandMessagePayload(
+            CommandType::CMD_STOP,
+            sender,
+            __cmdCounter++,
+            endCmd.payload
+        );
+    }
+
+    static CommandMessagePayload sensorToggle(MCUID sender, SensorToggleCommandOpt sensorToggleCmd) {
+        return CommandMessagePayload(
+            CommandType::CMD_SENSOR_TOGGLE,
+            sender,
+            __cmdCounter++,
+            sensorToggleCmd.payload
+        );
     }
 };
 

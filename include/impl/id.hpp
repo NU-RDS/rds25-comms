@@ -50,7 +50,21 @@ struct MessageInfo {
     static const Option<MessageInfo> getInfo(uint32_t id);
     static const Option<uint32_t> getMessageID(MCUID sender, MessageContentType type);
 
-    bool shouldListen(MCUID me);
+    bool shouldListen(MCUID me) {
+        if (target == MCU_ANY) return true;
+        if (target == me) return true;
+
+        switch (me) {
+            case MCU_LOW_LEVEL_0:
+            case MCU_LOW_LEVEL_1:
+            case MCU_LOW_LEVEL_2:
+            case MCU_LOW_LEVEL_3:
+                return target == MCU_LOW_LEVEL_ANY;
+            default:
+                return false;
+        }
+    }
+    
 };
 
 inline const std::map<uint32_t, MessageInfo> __infoLUT{
@@ -85,21 +99,6 @@ inline const Option<uint32_t> MessageInfo::getMessageID(MCUID sender, MessageCon
     }
 
     return Option<uint32_t>::none();
-}
-
-bool MessageInfo::shouldListen(MCUID me) {
-    if (target == MCU_ANY) return true;
-    if (target == me) return true;
-
-    switch (me) {
-        case MCU_LOW_LEVEL_0:
-        case MCU_LOW_LEVEL_1:
-        case MCU_LOW_LEVEL_2:
-        case MCU_LOW_LEVEL_3:
-            return target == MCU_LOW_LEVEL_ANY;
-        default:
-            return false;
-    }
 }
 
 }  // namespace comms
