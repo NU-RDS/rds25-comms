@@ -10,6 +10,11 @@
 
 namespace comms {
 
+struct CommsTickResult {
+    RawCommsMessage rawMessage;
+    MessageInfo info;
+};
+
 class CommsController {
    public:
     CommsController(CommsDriver &driver, MCUID id) : _driver(driver), _me(id) {}
@@ -36,26 +41,26 @@ class CommsController {
         _driver.sendMessage(raw);
     }
 
-    void tick() {
+    Option<CommsTickResult> tick() {
         RawCommsMessage message;
-        if (!_driver.receiveMessage(&message)) return;
+        if (!_driver.receiveMessage(&message)) return Option<CommsTickResult>::none();
         // figure out message type it is
         Option<MessageInfo> senderInfoOpt = MessageInfo::getInfo(message.id);
 
         if (senderInfoOpt.isNone()) {
             COMMS_DEBUG_PRINT_ERROR("Recieved an unregistered ID! 0x%04x\n", message.id);
-            return;
+            return Option<CommsTickResult>::none();
         }
 
         MessageInfo info = senderInfoOpt.value();
 
         if (info.sender == _me) {
             COMMS_DEBUG_PRINT_ERRORLN("Recieved a message from self!!!");
-            return;
+            return Option<CommsTickResult>::none();
         }
 
         if (!info.shouldListen(_me)) {
-            return;  // no need to listen
+            return Option<CommsTickResult>::none();
         }
 
         switch (info.type) {
@@ -71,6 +76,12 @@ class CommsController {
             default:
                 break;
         }
+
+        CommsTickResult res = {
+            .rawMessage = message,
+            .info = info};
+
+        return Option<CommsTickResult>::some(res);
     }
 
     MCUID me() const {
