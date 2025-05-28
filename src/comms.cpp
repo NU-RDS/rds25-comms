@@ -41,7 +41,7 @@ Option<float> CommsController::getSensorValue(MCUID sender, uint8_t sensorID) {
 };
 
 void CommsController::addSensor(uint32_t updateRateMs, uint8_t id, std::shared_ptr<Sensor> sensor) {
-    SensorDatastream stream(updateRateMs, id, sensor);
+    SensorDatastream stream(&_driver, me(), updateRateMs, id, sensor);
     _sensorDatastreams[id] = stream;
 };
 

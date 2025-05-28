@@ -56,7 +56,7 @@ class LambdaSensor : public Sensor {
 /// @brief Sends sensor readings periodically over the comms bus
 class SensorDatastream {
    public:
-    SensorDatastream(CommsDriver& driver, uint32_t updateRateMs, uint8_t id,
+    SensorDatastream(CommsDriver* driver, MCUID sender, uint32_t updateRateMs, uint8_t id,
                      std::shared_ptr<Sensor> sensor);
 
     /// Initialize sensor and timestamp
@@ -68,10 +68,11 @@ class SensorDatastream {
     void setStatus(bool enabled);
 
    private:
-    CommsDriver& _driver;
+    CommsDriver* _driver;
     std::shared_ptr<Sensor> _sensorPtr;
     bool _enabled;
     uint32_t _updateRateMs;
+    MCUID _sender;
     uint8_t _id;
     uint32_t _lastSendTime;
 };

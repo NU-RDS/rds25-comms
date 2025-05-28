@@ -4,9 +4,10 @@
 
 namespace comms {
 
-SensorDatastream::SensorDatastream(CommsDriver& driver, float updateRateMs, uint8_t id,
-                                   std::shared_ptr<Sensor> sensor)
+SensorDatastream::SensorDatastream(CommsDriver* driver, MCUID sender, uint32_t updateRateMs,
+                                   uint8_t id, std::shared_ptr<Sensor> sensor)
     : _driver(driver),
+      _sender(sender),
       _sensorPtr(std::move(sensor)),
       _enabled(true),
       _updateRateMs(updateRateMs),
@@ -37,7 +38,7 @@ void SensorDatastream::tick() {
     msg.length = sizeof(payload);
     msg.payload = payload.raw;
 
-    _driver.sendMessage(msg);
+    _driver->sendMessage(msg);
     _lastSendTime = now;
 }
 
