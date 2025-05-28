@@ -21,7 +21,7 @@ enum MCUID : uint8_t {
     MCU_ANY,
 };
 
-enum MessageIDs : uint32_t {
+enum MessageID : uint32_t {
     MID_ERROR_GLOBAL = 0x000,
     MID_ERROR_LL0 = 0x010,
     MID_ERROR_LL1 = 0x020,

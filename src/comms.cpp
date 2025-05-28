@@ -2,7 +2,8 @@
 
 namespace comms {
 
-CommsController::CommsController(CommsDriver& driver, MCUID id) : _driver(driver), _me(id) {}
+CommsController::CommsController(CommsDriver& driver, MCUID id)
+    : _driver(driver), _me(id), _heartbeatManager(&driver, id) {}
 
 void CommsController::initialize() {
     _driver.install();
@@ -121,7 +122,7 @@ void CommsController::handleCommand(MessageInfo info, RawCommsMessage message) {
 }
 
 void CommsController::handleHeartbeat(MessageInfo info, RawCommsMessage message) {
-    // send back a response if needed
+    _heartbeatManager.sendHeartbeatResponse();
 }
 
 void CommsController::handleError(MessageInfo info, RawCommsMessage message) {

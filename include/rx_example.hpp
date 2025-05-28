@@ -20,6 +20,7 @@ CommsController g_controller{
 static bool sensorInitialize() {
     return true;
 }
+
 static float sensorRead() {
     return 10.0f;
 }

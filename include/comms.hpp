@@ -9,6 +9,7 @@
 #include "impl/id.hpp"
 #include "impl/option.hpp"
 #include "impl/sensor.hpp"
+#include "impl/heartbeat.hpp"
 
 namespace comms {
 
@@ -46,8 +47,9 @@ class CommsController {
     CommandBuffer _cmdBuf;
 
     std::unordered_map<uint8_t, SensorDatastream> _sensorDatastreams;
-
     std::vector<SensorStatus> _sensorStatuses;
+
+    HeartbeatManager _heartbeatManager;
 
     MCUID _me;
 };
