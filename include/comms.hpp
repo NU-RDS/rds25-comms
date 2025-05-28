@@ -1,3 +1,4 @@
+// comms.hpp
 #ifndef __COMMS_H__
 #define __COMMS_H__
 
@@ -7,6 +8,7 @@
 #include "impl/debug.hpp"
 #include "impl/id.hpp"
 #include "impl/option.hpp"
+#include "impl/sensor.hpp"
 
 namespace comms {
 
@@ -17,118 +19,32 @@ struct CommsTickResult {
 
 class CommsController {
    public:
-    CommsController(CommsDriver &driver, MCUID id) : _driver(driver), _me(id) {}
+    CommsController(CommsDriver &driver, MCUID id);
+    void initialize();
 
-    void initialize() {
-        _driver.install();
-    }
+    // high-level controls
+    void sendCommand(CommandMessagePayload payload);
+    Option<float> getSensorValue(MCUID sender, uint8_t sensorID);
 
-    void sendCommand(CommandMessagePayload payload) {
-        RawCommsMessage raw;
-        raw.payload = payload.raw;
+    // low-level controls
+    void addSensor(float updateRateMs, uint8_t sensorID, std::shared_ptr<Sensor> sensor);
 
-        // get the id for the message
-        Option<uint32_t> idOpt = MessageInfo::getMessageID(_me, MessageContentType::MT_COMMAND);
-
-        if (idOpt.isNone()) {
-            COMMS_DEBUG_PRINT_ERRORLN("Unable to send a command! No ID found for command messages for me\n");
-            return;
-        }
-
-        raw.id = idOpt.value();
-
-        // Serial.printf("Sending message %u!\n", payload.raw);
-        _driver.sendMessage(raw);
-    }
-
-    Option<CommsTickResult> tick() {
-        RawCommsMessage message;
-        if (!_driver.receiveMessage(&message)) return Option<CommsTickResult>::none();
-        // figure out message type it is
-        Option<MessageInfo> senderInfoOpt = MessageInfo::getInfo(message.id);
-
-        if (senderInfoOpt.isNone()) {
-            COMMS_DEBUG_PRINT_ERROR("Recieved an unregistered ID! 0x%04x\n", message.id);
-            return Option<CommsTickResult>::none();
-        }
-
-        MessageInfo info = senderInfoOpt.value();
-
-        if (info.sender == _me) {
-            COMMS_DEBUG_PRINT_ERRORLN("Recieved a message from self!!!");
-            return Option<CommsTickResult>::none();
-        }
-
-        if (!info.shouldListen(_me)) {
-            return Option<CommsTickResult>::none();
-        }
-
-        switch (info.type) {
-            case MessageContentType::MT_COMMAND:
-                handleCommand(message);
-                break;
-            case MessageContentType::MT_HEARTBEAT:
-                handleHeartbeat(message);
-                break;
-            case MessageContentType::MT_ERROR:
-                handleError(message);
-                break;
-            default:
-                break;
-        }
-
-        CommsTickResult res = {
-            .rawMessage = message,
-            .info = info};
-
-        return Option<CommsTickResult>::some(res);
-    }
-
-    MCUID me() const {
-        return _me;
-    }
+    Option<CommsTickResult> tick();
+    MCUID me() const;
 
    private:
-    void handleCommand(RawCommsMessage message) {
-        Result<CommandMessagePayload> cmdRes = CommandMessagePayload::fromRaw(message);
-
-        if (cmdRes.isError()) {
-            COMMS_DEBUG_PRINT_ERROR("Unable to handle command: %s\,", cmdRes.error);
-            return;
-        }
-
-        CommandMessagePayload cmd = cmdRes.value();
-
-        COMMS_DEBUG_PRINT("Recieved a command! From %d, command type %d, command id %d\n ", senderInfo.mcu, cmd.type, cmd.commandID);
-
-        switch (cmd.type) {
-            case CMD_BEGIN:
-                _cmdBuf.startExecution();
-                break;
-            case CMD_STOP:
-                // stop
-                break;
-            case CMD_MOTOR_CONTROL:
-                _cmdBuf.addCommand(cmd);
-            case CMD_SENSOR_TOGGLE:
-                // control sensor stream
-                break;
-            default:
-                COMMS_DEBUG_PRINT_ERRORLN("Invalid command recieved!");
-                break;
-        }
-    }
-
-    void handleHeartbeat(RawCommsMessage message) {
-        COMMS_DEBUG_PRINT_ERROR("Unimplemented!!!");
-    }
-
-    void handleError(RawCommsMessage message) {
-        COMMS_DEBUG_PRINT_ERROR("Received errror! %d", message.payload);
-    }
+    void handleCommand(RawCommsMessage message);
+    void handleHeartbeat(RawCommsMessage message);
+    void handleError(RawCommsMessage message);
 
     CommsDriver &_driver;
     CommandBuffer _cmdBuf;
+
+    std::unordered_map<uint8_t, SensorDatastream> _sensorDatastreams;
+
+    std::vector<SensorStatus> _sensorStatuses;
+
+
     MCUID _me;
 };
 
