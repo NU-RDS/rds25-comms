@@ -8,8 +8,7 @@ using namespace comms;
 
 uint16_t CommandBuilder::__cmdCounter = 0;
 
-CommandBuffer::CommandBuffer() : _currentSlice(CommandSlice::empty()) {
-}
+CommandBuffer::CommandBuffer() : _currentSlice(CommandSlice::empty()) {}
 
 void CommandBuffer::addCommand(CommandMessagePayload command) {
     _commands.push_back(command);
@@ -34,8 +33,7 @@ void CommandBuffer::tick() {
         CommandMessagePayload commandPayload = _commands[i];
 
         std::shared_ptr<CommandHandler> handler = _handlers[commandPayload.commandID];
-        if (handler == nullptr) continue; // no handler
-
+        if (handler == nullptr) continue;  // no handler
     }
 
     if (_numCompletedCommands == _currentSlice.size()) {
@@ -48,7 +46,7 @@ void CommandBuffer::tick() {
             .success = true,
         };
 
-        for (auto &callback : _onExecutionCompleteCallbacks) {
+        for (auto& callback : _onExecutionCompleteCallbacks) {
             callback(stats);
         }
 
@@ -59,7 +57,6 @@ void CommandBuffer::tick() {
 void CommandBuffer::setHandler(CommandType type, std::shared_ptr<CommandHandler> handler) {
     _handlers[type] = handler;
 }
-
 
 void CommandBuffer::startExecution() {
     if (_isExecuting) {
@@ -86,8 +83,7 @@ void CommandBuffer::reset() {
  *------------------------------------------------------------------------**/
 
 CommandBuffer::CommandSlice::CommandSlice(std::size_t start, std::size_t end)
-    : _start(start), _end(end) {
-}
+    : _start(start), _end(end) {}
 
 std::size_t CommandBuffer::CommandSlice::start() const {
     return _start;
@@ -105,11 +101,11 @@ CommandBuffer::CommandSlice CommandBuffer::CommandSlice::empty() {
     return CommandSlice(10, 0);
 }
 
-bool CommandBuffer::CommandSlice::isEmpty(const CommandSlice &slice) {
+bool CommandBuffer::CommandSlice::isEmpty(const CommandSlice& slice) {
     return slice.start() >= slice.end();
 }
 
-CommandBuffer::CommandSlice CommandBuffer::findNextSlice(const CommandSlice &currentSlice) {
+CommandBuffer::CommandSlice CommandBuffer::findNextSlice(const CommandSlice& currentSlice) {
     std::size_t start = currentSlice.end();
     std::size_t end = currentSlice.end();
 
@@ -120,12 +116,11 @@ CommandBuffer::CommandSlice CommandBuffer::findNextSlice(const CommandSlice &cur
     std::vector<CommandMessagePayload> slice(_commands.size());
 
     for (std::size_t i = currentSlice.end(); i < _commands.size(); i++) {
-        
         slice.push_back(_commands[i]);
         CommandMessagePayload commandPayload = _commands[i];
-        
+
         std::shared_ptr<CommandHandler> handler = _handlers[commandPayload.commandID];
-        if (handler == nullptr) continue; // no handler
+        if (handler == nullptr) continue;  // no handler
 
         if (!handler->isParallelizable(slice)) {
             end = i + 1;

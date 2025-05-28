@@ -36,11 +36,7 @@ enum MessageIDs : uint32_t {
     MID_COMMAND_RESP2 = 0x330,
 };
 
-enum MessageContentType : uint8_t {
-    MT_ERROR,
-    MT_HEARTBEAT,
-    MT_COMMAND
-};
+enum MessageContentType : uint8_t { MT_ERROR, MT_HEARTBEAT, MT_COMMAND };
 
 struct MessageInfo {
     MCUID sender;
@@ -64,7 +60,6 @@ struct MessageInfo {
                 return false;
         }
     }
-    
 };
 
 inline const std::map<uint32_t, MessageInfo> __infoLUT{

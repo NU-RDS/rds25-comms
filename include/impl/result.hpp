@@ -11,15 +11,13 @@ class Result {
    public:
     static Result<T> ok(T value) { return Result<T>(value); }
     static Result<T> errorResult() { return Result<T>(true); }
-    static Result<T> errorResult(std::string errorMessage) {
-        return Result<T>(true, errorMessage);
-    }
+    static Result<T> errorResult(std::string errorMessage) { return Result<T>(true, errorMessage); }
 
     operator bool() const { return !_error; }
 
     Result() : _error(true) {}
 
-    Result<T> operator=(const Result<T> &other) {
+    Result<T> operator=(const Result<T>& other) {
         _value = other._value;
         _error = other._error;
         _errorMessage = other._errorMessage;
@@ -37,12 +35,11 @@ class Result {
 
     Result(T value) : _value(value), _error(false), _errorMessage("") {}
     Result(bool error) : _error(error), _errorMessage(""), _value(T()) {}
-    Result(bool error, std::string errorMessage)
-        : _error(error), _errorMessage(errorMessage) {}
+    Result(bool error, std::string errorMessage) : _error(error), _errorMessage(errorMessage) {}
 };
 
 template <typename OnError, typename... Fs>
-bool check(OnError onError, Fs &&...functions) {
+bool check(OnError onError, Fs&&... functions) {
     // check if any of the functions return an error
     bool error = false;
     std::vector<std::string> errors;
@@ -52,7 +49,7 @@ bool check(OnError onError, Fs &&...functions) {
     if (error) {
         // concatenate the error messages into one string
         std::string errorMessage;
-        for (const std::string &error : errors) {
+        for (const std::string& error : errors) {
             if (error.empty()) {
                 continue;
             }

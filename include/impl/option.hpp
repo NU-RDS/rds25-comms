@@ -11,7 +11,7 @@ class Option {
 
     Option() : _hasValue(false) {}
 
-    Option<T> operator=(const Option<T> &other) {
+    Option<T> operator=(const Option<T>& other) {
         _value = other._value;
         _hasValue = other._hasValue;
         return *this;

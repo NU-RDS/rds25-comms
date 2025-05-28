@@ -2,8 +2,7 @@
 
 namespace comms {
 
-CommsController::CommsController(CommsDriver &driver, MCUID id)
-    : _driver(driver), _me(id) {}
+CommsController::CommsController(CommsDriver& driver, MCUID id) : _driver(driver), _me(id) {}
 
 void CommsController::initialize() {
     _driver.install();
@@ -15,7 +14,8 @@ void CommsController::sendCommand(CommandMessagePayload payload) {
 
     Option<uint32_t> idOpt = MessageInfo::getMessageID(_me, MessageContentType::MT_COMMAND);
     if (idOpt.isNone()) {
-        COMMS_DEBUG_PRINT_ERRORLN("Unable to send a command! No ID found for command messages for me\n");
+        COMMS_DEBUG_PRINT_ERRORLN(
+            "Unable to send a command! No ID found for command messages for me\n");
         return;
     }
     raw.id = idOpt.value();
@@ -40,15 +40,14 @@ Option<float> CommsController::getSensorValue(MCUID sender, uint8_t sensorID) {
     return Option<float>::none();
 };
 
-void CommsController::addSensor(float updateRateMs, uint8_t id, std::shared_ptr<Sensor> sensor) {
+void CommsController::addSensor(uint32_t updateRateMs, uint8_t id, std::shared_ptr<Sensor> sensor) {
     SensorDatastream stream(updateRateMs, id, sensor);
     _sensorDatastreams[id] = stream;
 };
 
 Option<CommsTickResult> CommsController::tick() {
     RawCommsMessage message;
-    if (!_driver.receiveMessage(&message))
-        return Option<CommsTickResult>::none();
+    if (!_driver.receiveMessage(&message)) return Option<CommsTickResult>::none();
 
     Option<MessageInfo> senderInfoOpt = MessageInfo::getInfo(message.id);
     if (senderInfoOpt.isNone()) {
@@ -96,7 +95,8 @@ void CommsController::handleCommand(RawCommsMessage message) {
     }
 
     CommandMessagePayload cmd = cmdRes.value();
-    COMMS_DEBUG_PRINT("Recieved a command! From %d, command type %d, command id %d\n ", senderInfo.mcu, cmd.type, cmd.commandID);
+    COMMS_DEBUG_PRINT("Recieved a command! From %d, command type %d, command id %d\n ",
+                      senderInfo.mcu, cmd.type, cmd.commandID);
 
     switch (cmd.type) {
         case CMD_BEGIN:

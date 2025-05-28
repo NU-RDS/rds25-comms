@@ -19,7 +19,7 @@ struct CommsTickResult {
 
 class CommsController {
    public:
-    CommsController(CommsDriver &driver, MCUID id);
+    CommsController(CommsDriver& driver, MCUID id);
     void initialize();
 
     // high-level controls
@@ -27,7 +27,7 @@ class CommsController {
     Option<float> getSensorValue(MCUID sender, uint8_t sensorID);
 
     // low-level controls
-    void addSensor(float updateRateMs, uint8_t sensorID, std::shared_ptr<Sensor> sensor);
+    void addSensor(uint32_t updateRateMs, uint8_t sensorID, std::shared_ptr<Sensor> sensor);
 
     Option<CommsTickResult> tick();
     MCUID me() const;
@@ -37,13 +37,12 @@ class CommsController {
     void handleHeartbeat(RawCommsMessage message);
     void handleError(RawCommsMessage message);
 
-    CommsDriver &_driver;
+    CommsDriver& _driver;
     CommandBuffer _cmdBuf;
 
     std::unordered_map<uint8_t, SensorDatastream> _sensorDatastreams;
 
     std::vector<SensorStatus> _sensorStatuses;
-
 
     MCUID _me;
 };

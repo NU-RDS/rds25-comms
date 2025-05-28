@@ -22,23 +22,24 @@ class CommsDriver {
    public:
     virtual void install() = 0;
     virtual void uninstall() = 0;
-    virtual void sendMessage(const RawCommsMessage &message) = 0;
+    virtual void sendMessage(const RawCommsMessage& message) = 0;
 
     // message handling for interrupt-based drivers
-    void attachRXCallback(uint32_t id, std::function<void(const RawCommsMessage &)> callback) {
+    void attachRXCallback(uint32_t id, std::function<void(const RawCommsMessage&)> callback) {
         if (_callbackTable.find(id) == _callbackTable.end()) {
             // a vector doesn't exist yet
-            _callbackTable[id] = std::vector<std::function<void(const RawCommsMessage &)>>();
+            _callbackTable[id] = std::vector<std::function<void(const RawCommsMessage&)>>();
         }
         _callbackTable[id].push_back(callback);
     }
 
-    bool receiveMessage(RawCommsMessage *res) { return false; }
+    bool receiveMessage(RawCommsMessage* res) { return false; }
 
    private:
-    std::unordered_map<uint32_t, std::vector<std::function<void(const RawCommsMessage &)>>> _callbackTable;
+    std::unordered_map<uint32_t, std::vector<std::function<void(const RawCommsMessage&)>>>
+        _callbackTable;
 };
 
-}
+}  // namespace comms
 
 #endif  // __COMMS_DRIVER_H__

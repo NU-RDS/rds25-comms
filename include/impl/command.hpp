@@ -53,8 +53,10 @@ struct CommandMessagePayload {
         };
     };
 
-    CommandMessagePayload() : type(CommandType::CMD_INVALID), mcuID(MCUID::MCU_INVALID), commandID(0), payload(0) {}
-    CommandMessagePayload(CommandType cType, MCUID mid, uint16_t cid, uint32_t data) : type(cType), mcuID(mid), commandID(cid), payload(data) {}
+    CommandMessagePayload()
+        : type(CommandType::CMD_INVALID), mcuID(MCUID::MCU_INVALID), commandID(0), payload(0) {}
+    CommandMessagePayload(CommandType cType, MCUID mid, uint16_t cid, uint32_t data)
+        : type(cType), mcuID(mid), commandID(cid), payload(data) {}
 
     static Result<CommandMessagePayload> fromRaw(RawCommsMessage message) {
         Option<MessageInfo> infoOpt = MessageInfo::getInfo(message.id);
@@ -78,12 +80,10 @@ struct CommandMessagePayload {
     CommandMessagePayload(uint64_t raw) : raw(raw) {}
 };
 
-enum MotorControlCommandType : uint8_t {
-    MC_CMD_POS,
-    MC_CMD_VEL
-};
+enum MotorControlCommandType : uint8_t { MC_CMD_POS, MC_CMD_VEL };
 
-/// @brief Exact same memory footprint as the CommandMessagePayload::Payload, used for the "specific things"
+/// @brief Exact same memory footprint as the CommandMessagePayload::Payload, used for the "specific
+/// things"
 // in side the payload -- this is the inner most layer
 struct MotorControlCommandOpt {
     union {
@@ -97,7 +97,9 @@ struct MotorControlCommandOpt {
     };
 
     MotorControlCommandOpt() : payload(0) {}
-    MotorControlCommandOpt(MCUID targetID, uint8_t motorNumber, MotorControlCommandType type, uint8_t value) : targetID(targetID), motorNumber(motorNumber), controlType(type), value(value) {}
+    MotorControlCommandOpt(MCUID targetID, uint8_t motorNumber, MotorControlCommandType type,
+                           uint8_t value)
+        : targetID(targetID), motorNumber(motorNumber), controlType(type), value(value) {}
 };
 
 struct BeginExecutionCommandOpt {
@@ -135,7 +137,8 @@ struct SensorToggleCommandOpt {
     };
 
     SensorToggleCommandOpt() : payload(0) {}
-    SensorToggleCommandOpt(MCUID targetID, uint8_t sensorID, bool enable) : targetID(targetID), sensorID(sensorID), enable(enable) {}
+    SensorToggleCommandOpt(MCUID targetID, uint8_t sensorID, bool enable)
+        : targetID(targetID), sensorID(sensorID), enable(enable) {}
 };
 
 class CommandBuilder {
@@ -143,38 +146,23 @@ class CommandBuilder {
     static uint16_t __cmdCounter;
 
     static CommandMessagePayload motorControl(MCUID sender, MotorControlCommandOpt motorCmd) {
-        return CommandMessagePayload(
-            CommandType::CMD_MOTOR_CONTROL,
-            sender,
-            __cmdCounter++,
-            motorCmd.payload);
+        return CommandMessagePayload(CommandType::CMD_MOTOR_CONTROL, sender, __cmdCounter++,
+                                     motorCmd.payload);
     }
 
     static CommandMessagePayload endExecution(MCUID sender, BeginExecutionCommandOpt beginCmd) {
-        return CommandMessagePayload(
-            CommandType::CMD_BEGIN,
-            sender,
-            __cmdCounter++,
-            beginCmd.payload
-        );
+        return CommandMessagePayload(CommandType::CMD_BEGIN, sender, __cmdCounter++,
+                                     beginCmd.payload);
     }
 
     static CommandMessagePayload sensorToggle(MCUID sender, EndExecutionCommandOpt endCmd) {
-        return CommandMessagePayload(
-            CommandType::CMD_STOP,
-            sender,
-            __cmdCounter++,
-            endCmd.payload
-        );
+        return CommandMessagePayload(CommandType::CMD_STOP, sender, __cmdCounter++, endCmd.payload);
     }
 
-    static CommandMessagePayload sensorToggle(MCUID sender, SensorToggleCommandOpt sensorToggleCmd) {
-        return CommandMessagePayload(
-            CommandType::CMD_SENSOR_TOGGLE,
-            sender,
-            __cmdCounter++,
-            sensorToggleCmd.payload
-        );
+    static CommandMessagePayload sensorToggle(MCUID sender,
+                                              SensorToggleCommandOpt sensorToggleCmd) {
+        return CommandMessagePayload(CommandType::CMD_SENSOR_TOGGLE, sender, __cmdCounter++,
+                                     sensorToggleCmd.payload);
     }
 };
 
@@ -182,9 +170,9 @@ class CommandBuilder {
 /// Used to specify "when I recieve this type of command, what should happen?"
 class CommandHandler {
    public:
-    virtual void start(const CommandMessagePayload &payload) {}
-    virtual void update(const CommandMessagePayload &payload) {}
-    virtual void end(const CommandMessagePayload &payload) {}
+    virtual void start(const CommandMessagePayload& payload) {}
+    virtual void update(const CommandMessagePayload& payload) {}
+    virtual void end(const CommandMessagePayload& payload) {}
     virtual bool isParallelizable(const std::vector<CommandMessagePayload> slice);
 };
 
@@ -251,7 +239,7 @@ class CommandBuffer {
         /// @brief Checks if the given slice is empty.
         /// @param slice The CommandSlice to check.
         /// @return true if the slice is empty.
-        static bool isEmpty(const CommandSlice &slice);
+        static bool isEmpty(const CommandSlice& slice);
 
        private:
         std::size_t _start;  ///< Starting index.
@@ -265,13 +253,14 @@ class CommandBuffer {
     uint32_t _startTime;                           ///< Time when execution
     bool _isCalibrating;                           ///< Whether the buffer is calibrating.
 
-    std::vector<std::function<void(ExecutionStats)>> _onExecutionCompleteCallbacks;  ///< Callbacks to call when execution is complete.
+    std::vector<std::function<void(ExecutionStats)>>
+        _onExecutionCompleteCallbacks;  ///< Callbacks to call when execution is complete.
     std::array<std::shared_ptr<CommandHandler>, CommandType::CMD_COUNT> _handlers;
 
     /// @brief Finds the next slice of commands to execute.
     /// @param currentSlice The current command slice.
     /// @return The next CommandSlice.
-    CommandSlice findNextSlice(const CommandSlice &currentSlice);
+    CommandSlice findNextSlice(const CommandSlice& currentSlice);
 };
 
 }  // namespace comms

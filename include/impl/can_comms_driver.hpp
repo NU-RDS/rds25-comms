@@ -12,13 +12,7 @@ namespace comms {
 static FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> _can1;
 static FlexCAN_T4<CAN2, RX_SIZE_256, TX_SIZE_16> _can2;
 
-enum CANBaudRate {
-    CBR_100KBPS,
-    CBR_125KBPS,
-    CBR_250KBPS,
-    CBR_500KBPS,
-    CBR_1MBPS
-};
+enum CANBaudRate { CBR_100KBPS, CBR_125KBPS, CBR_250KBPS, CBR_500KBPS, CBR_1MBPS };
 
 template <uint8_t busNum, CANBaudRate baudRate>
 class TeensyCANDriver : public CommsDriver {
@@ -59,10 +53,9 @@ class TeensyCANDriver : public CommsDriver {
         Serial.println("Installing TeensyCANDriver!");
     }
 
-    void uninstall() {
-    }
+    void uninstall() {}
 
-    void sendMessage(const RawCommsMessage &message) {
+    void sendMessage(const RawCommsMessage& message) {
         CAN_message_t msg;
         msg.id = message.id;
 
@@ -79,7 +72,7 @@ class TeensyCANDriver : public CommsDriver {
         }
     }
 
-    bool receiveMessage(RawCommsMessage *message) {
+    bool receiveMessage(RawCommsMessage* message) {
         CAN_message_t res;
         bool found;
         switch (_busNum) {

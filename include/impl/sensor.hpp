@@ -1,7 +1,10 @@
+// sensor.hpp
 #ifndef __SENSOR_H__
 #define __SENSOR_H__
 
 #include <functional>
+#include <memory>
+#include <cstdint>
 
 #include "comms_driver.hpp"
 #include "id.hpp"
@@ -28,16 +31,21 @@ class Sensor {
     virtual bool initialize() = 0;
     virtual float read() = 0;
     virtual void cleanup() = 0;
+    virtual ~Sensor() = default;
 };
 
 /// @brief An implementation of Sensor that uses lambda functions
 class LambdaSensor : public Sensor {
    public:
-    LambdaSensor(std::function<bool()> initializeFn, std::function<float()> readFn, std::function<void()> cleanupFn) : _initialize(initializeFn), _read(readFn), _cleanup(cleanupFn) {}
+    LambdaSensor(std::function<bool()> initializeFn, std::function<float()> readFn,
+                 std::function<void()> cleanupFn)
+        : _initialize(std::move(initializeFn)),
+          _read(std::move(readFn)),
+          _cleanup(std::move(cleanupFn)) {}
 
-    bool initialize() { return _initialize(); }
-    float read() { return _read(); }
-    void cleanup() { return _cleanup(); }
+    bool initialize() override { return _initialize(); }
+    float read() override { return _read(); }
+    void cleanup() override { _cleanup(); }
 
    private:
     std::function<bool()> _initialize;
@@ -45,23 +53,29 @@ class LambdaSensor : public Sensor {
     std::function<void()> _cleanup;
 };
 
-/// @brief A management structure for the sender of sensor information
-/// This is used to keep track of 
+/// @brief Sends sensor readings periodically over the comms bus
 class SensorDatastream {
    public:
-    SensorDatastream(float updateRateMs, uint8_t id, std::shared_ptr<Sensor> sensor) : _updateRateMs(updateRateMs), _id(id), _sensorPtr(sensor) {}
+    SensorDatastream(CommsDriver& driver, uint32_t updateRateMs, uint8_t id,
+                     std::shared_ptr<Sensor> sensor);
 
-    bool initialize() { return _sensorPtr->initialize(); }
-    float read() { return _sensorPtr->read(); }
-    void cleanup() { _sensorPtr->cleanup(); }
+    /// Initialize sensor and timestamp
+    void initialize();
+
+    /// Called frequently; sends when the interval has elapsed
+    void tick();
+
+    void setStatus(bool enabled);
 
    private:
-    float _updateRateMs;
-    uint8_t _id;
-    bool _enabled = true;
+    CommsDriver& _driver;
     std::shared_ptr<Sensor> _sensorPtr;
+    bool _enabled;
+    uint32_t _updateRateMs;
+    uint8_t _id;
+    uint32_t _lastSendTime;
 };
-
+/// @brief Status decoded from a sensor message
 struct SensorStatus {
     MCUID sender;
     uint8_t sensorID;
