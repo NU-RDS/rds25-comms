@@ -46,6 +46,12 @@ void CommsController::addSensor(uint32_t updateRateMs, uint8_t id, std::shared_p
 };
 
 Option<CommsTickResult> CommsController::tick() {
+    // update all of our sensor datastreams
+    for (auto s : _sensorDatastreams) {
+        s.second.tick();
+    }
+
+
     RawCommsMessage message;
     if (!_driver.receiveMessage(&message)) return Option<CommsTickResult>::none();
 

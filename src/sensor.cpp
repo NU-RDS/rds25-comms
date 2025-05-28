@@ -2,6 +2,8 @@
 
 #include <Arduino.h>
 
+#include "impl/debug.hpp"
+
 namespace comms {
 
 SensorDatastream::SensorDatastream(CommsDriver* driver, MCUID sender, uint32_t updateRateMs,
@@ -34,7 +36,15 @@ void SensorDatastream::tick() {
     payload.sensorID = _id;
 
     RawCommsMessage msg{};
-    msg.id = static_cast<uint32_t>(_id);
+    Option<uint32_t> midOpt =
+        MessageInfo::getMessageID(_sender, MessageContentType::MT_SENSOR_DATA);
+
+    if (midOpt.isNone()) {
+        COMMS_DEBUG_PRINT_ERRORLN(
+            "Unable to send sensor data! Message ID has no mapping for %d (MCUID)", _sender);
+    }
+
+    msg.id = midOpt.value();
     msg.length = sizeof(payload);
     msg.payload = payload.raw;
 
