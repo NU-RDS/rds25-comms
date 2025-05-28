@@ -122,7 +122,17 @@ void CommsController::handleCommand(MessageInfo info, RawCommsMessage message) {
 }
 
 void CommsController::handleHeartbeat(MessageInfo info, RawCommsMessage message) {
-    _heartbeatManager.sendHeartbeatResponse();
+    switch (info.sender) {
+        case MCUID::MCU_HIGH_LEVEL:
+            _heartbeatManager.sendHeartbeatResponse();
+            break;
+        default:
+            if (_me == MCUID::MCU_HIGH_LEVEL)
+                _heartbeatManager.updateHeartbeatStatus(info.sender);
+            else
+                COMMS_DEBUG_PRINT_ERRORLN("Cannot handle a heartbeat response! Not the high level");
+            break;
+    }
 }
 
 void CommsController::handleError(MessageInfo info, RawCommsMessage message) {

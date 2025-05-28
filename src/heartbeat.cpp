@@ -6,16 +6,18 @@
 
 namespace comms {
 
-HeartbeatManager::HeartbeatManager(CommsDriver* driver, MCUID me) : _driver(driver), _me(me) {}
+HeartbeatManager::HeartbeatManager(CommsDriver* driver, MCUID me)
+    : _driver(driver), _me(me), _myStatus{0} {}
 
 bool HeartbeatManager::tick() {
-    uint32_t currentTime = millis();
+    if (_me != MCUID::MCU_HIGH_LEVEL) return;
+
     _badNodes.clear();
 
     for (auto statusPair : _requestStatuses) {
         HeartbeatRequestStatus status = statusPair.second;
 
-        if (currentTime - status.lastRequest > 5000) {
+        if (status.lastResponse - status.lastRequest > 5000) {
             // too long of a time has passed
             COMMS_DEBUG_PRINT_ERRORLN(
                 "Too much time has elapsed between heartbeat request and last response for node %d",
@@ -50,7 +52,25 @@ bool HeartbeatManager::tick() {
 
         COMMS_DEBUG_PRINT_ERRORLN("Hearbeat mismatch on node %d. Expected %d, got %d", status.id,
                                   status.expectedHeartbeatCount, status.actualHeartbeatCount);
+
+        _badNodes.push_back(status.id);
     }
+
+    return _badNodes.size() == 0;
+}
+
+void HeartbeatManager::updateHeartbeatStatus(MCUID id) {
+    // update the hearbeat requests statues
+    HeartbeatRequestStatus status = {0};
+    if (_requestStatuses.find(id) != _requestStatuses.end()) {
+        status = _requestStatuses[id];
+    }
+
+    status.id = id;
+    status.actualHeartbeatCount++;
+    status.lastResponse = millis();
+
+    _requestStatuses[id] = status;
 }
 
 void HeartbeatManager::sendHeartbeatRequest(MCUID destination) {
@@ -61,7 +81,7 @@ void HeartbeatManager::sendHeartbeatRequest(MCUID destination) {
 
     Option<uint32_t> idOpt = MessageInfo::getMessageID(_me, MessageContentType::MT_HEARTBEAT);
     if (idOpt.isNone()) {
-        COMMS_DEBUG_PRINT_ERRORLN("Cannot send a heartbeat response! No ID available!");
+        COMMS_DEBUG_PRINT_ERRORLN("Cannot send a heartbeat request! No ID available!");
         return;
     }
 
@@ -77,7 +97,7 @@ void HeartbeatManager::sendHeartbeatRequest(MCUID destination) {
 
     // update the hearbeat requests statues
     HeartbeatRequestStatus status = {0};
-    if (_requestStatuses.find(destination) == _requestStatuses.end()) {
+    if (_requestStatuses.find(destination) !=_requestStatuses.end()) {
         status = _requestStatuses[destination];
     }
 

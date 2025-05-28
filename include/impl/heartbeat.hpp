@@ -31,6 +31,7 @@ struct HeartbeatRequestStatus {
     uint64_t expectedHeartbeatCount;
     uint64_t actualHeartbeatCount;
     uint32_t lastRequest;
+    uint32_t lastResponse;
     MCUID id;
 };
 
@@ -40,16 +41,17 @@ struct HeartbeatResponseStatus {
 
 class HeartbeatManager {
    public:
-    HeartbeatManager(CommsDriver *driver, MCUID me);
+    HeartbeatManager(CommsDriver* driver, MCUID me);
 
     bool tick();
+    void updateHeartbeatStatus(MCUID id);
     void sendHeartbeatRequest(MCUID destination);
     void sendHeartbeatResponse();
 
    private:
     std::unordered_map<MCUID, HeartbeatRequestStatus> _requestStatuses;
     HeartbeatResponseStatus _myStatus;
-    CommsDriver *_driver;
+    CommsDriver* _driver;
     MCUID _me;
 
     std::vector<MCUID> _badNodes;
