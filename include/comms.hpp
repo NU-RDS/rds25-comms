@@ -33,14 +33,14 @@ class CommsController {
     MCUID me() const;
 
    private:
-    void handleCommand(RawCommsMessage message);
-    void handleHeartbeat(RawCommsMessage message);
-    void handleError(RawCommsMessage message);
+    void handleCommand(MessageInfo info, RawCommsMessage message);
+    void handleHeartbeat(MessageInfo info, RawCommsMessage message);
+    void handleError(MessageInfo info, RawCommsMessage message);
 
-    void handleCommandBegin(CommandMessagePayload payload);
-    void handleCommandStop(CommandMessagePayload payload);
-    void handleCommandMotorControl(CommandMessagePayload payload);
-    void handleCommandSensorToggle(CommandMessagePayload payload);
+    void handleCommandBegin(MessageInfo info, CommandMessagePayload payload);
+    void handleCommandStop(MessageInfo info, CommandMessagePayload payload);
+    void handleCommandMotorControl(MessageInfo info, CommandMessagePayload payload);
+    void handleCommandSensorToggle(MessageInfo info, CommandMessagePayload payload);
 
     CommsDriver& _driver;
     CommandBuffer _cmdBuf;

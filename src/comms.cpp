@@ -72,13 +72,13 @@ Option<CommsTickResult> CommsController::tick() {
 
     switch (info.type) {
         case MessageContentType::MT_COMMAND:
-            handleCommand(message);
+            handleCommand(info, message);
             break;
         case MessageContentType::MT_HEARTBEAT:
-            handleHeartbeat(message);
+            handleHeartbeat(info, message);
             break;
         case MessageContentType::MT_ERROR:
-            handleError(message);
+            handleError(info, message);
             break;
         default:
             break;
@@ -92,7 +92,7 @@ MCUID CommsController::me() const {
     return _me;
 }
 
-void CommsController::handleCommand(RawCommsMessage message) {
+void CommsController::handleCommand(MessageInfo info, RawCommsMessage message) {
     Result<CommandMessagePayload> cmdRes = CommandMessagePayload::fromRaw(message);
     if (cmdRes.isError()) {
         COMMS_DEBUG_PRINT_ERROR("Unable to handle command: %s,", cmdRes.error());
@@ -120,16 +120,11 @@ void CommsController::handleCommand(RawCommsMessage message) {
     }
 }
 
-void CommsController::handleHeartbeat(RawCommsMessage message) {
+void CommsController::handleHeartbeat(MessageInfo info, RawCommsMessage message) {
     // send back a response if needed
-    Option<MessageInfo> senderInfoOpt = MessageInfo::getInfo(message.id);
-    if (senderInfoOpt.isNone()) {
-        return;
-    }
-    MessageInfo info = senderInfoOpt.value();
 }
 
-void CommsController::handleError(RawCommsMessage message) {
+void CommsController::handleError(MessageInfo info, RawCommsMessage message) {
     COMMS_DEBUG_PRINT_ERROR("Received errror! %d", message.payload);
 }
 
@@ -157,5 +152,6 @@ void CommsController::handleCommandSensorToggle(MessageInfo info, CommandMessage
     } else {
         _sensorDatastreams[toggleOpt.sensorID].setStatus(toggleOpt.enable);
     }
+}
 
 }  // namespace comms
