@@ -2,9 +2,9 @@
 #ifndef __SENSOR_H__
 #define __SENSOR_H__
 
+#include <cstdint>
 #include <functional>
 #include <memory>
-#include <cstdint>
 
 #include "comms_driver.hpp"
 #include "id.hpp"
@@ -56,6 +56,7 @@ class LambdaSensor : public Sensor {
 /// @brief Sends sensor readings periodically over the comms bus
 class SensorDatastream {
    public:
+    SensorDatastream();
     SensorDatastream(CommsDriver* driver, MCUID sender, uint32_t updateRateMs, uint8_t id,
                      std::shared_ptr<Sensor> sensor);
 
@@ -69,10 +70,10 @@ class SensorDatastream {
 
    private:
     CommsDriver* _driver;
+    MCUID _sender;
     std::shared_ptr<Sensor> _sensorPtr;
     bool _enabled;
     uint32_t _updateRateMs;
-    MCUID _sender;
     uint8_t _id;
     uint32_t _lastSendTime;
 };

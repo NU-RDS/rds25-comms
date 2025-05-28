@@ -37,6 +37,11 @@ class CommsController {
     void handleHeartbeat(RawCommsMessage message);
     void handleError(RawCommsMessage message);
 
+    void handleCommandBegin(CommandMessagePayload payload);
+    void handleCommandStop(CommandMessagePayload payload);
+    void handleCommandMotorControl(CommandMessagePayload payload);
+    void handleCommandSensorToggle(CommandMessagePayload payload);
+
     CommsDriver& _driver;
     CommandBuffer _cmdBuf;
 

@@ -6,6 +6,15 @@
 
 namespace comms {
 
+SensorDatastream::SensorDatastream()
+    : _driver(nullptr),
+      _sender(MCUID::MCU_ANY),
+      _sensorPtr(),
+      _enabled(false),
+      _updateRateMs(0),
+      _id(0),
+      _lastSendTime(0) {}
+
 SensorDatastream::SensorDatastream(CommsDriver* driver, MCUID sender, uint32_t updateRateMs,
                                    uint8_t id, std::shared_ptr<Sensor> sensor)
     : _driver(driver),
@@ -48,8 +57,13 @@ void SensorDatastream::tick() {
     msg.length = sizeof(payload);
     msg.payload = payload.raw;
 
-    _driver->sendMessage(msg);
     _lastSendTime = now;
+
+    if (_driver == nullptr) {
+        COMMS_DEBUG_PRINT_ERRORLN("Unable to send sensor data! Driver is null!");
+        return;
+    }
+    _driver->sendMessage(msg);
 }
 
 void SensorDatastream::setStatus(bool enabled) {

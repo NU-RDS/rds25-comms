@@ -20,10 +20,10 @@
 
 // Should return a string like this: [system:file_name.cpp:line_number] in the color defined by
 // color_str
-#define __DEBUG_PREFIX(system_str, color_str)                                          \
+#define __DEBUG_PREFIX(system_str, color_str) \
     color_str "[" system_str "][" __DEBUG_FILE ":" __DEBUG_STRINGIFY(__DEBUG_LINE) "]" \
                                                                                    " " COLOR_RETURN
-#define __DEBUG_ERROR_PREFIX(system_str, color_str)                                    \
+#define __DEBUG_ERROR_PREFIX(system_str, color_str) \
     COLOR_RED "[" system_str "][" __DEBUG_FILE ":" __DEBUG_STRINGIFY(__DEBUG_LINE) "]" \
                                                                                    " " COLOR_RETURN
 

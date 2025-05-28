@@ -54,7 +54,7 @@ struct CommandMessagePayload {
     };
 
     CommandMessagePayload()
-        : type(CommandType::CMD_INVALID), mcuID(MCUID::MCU_INVALID), commandID(0), payload(0) {}
+        : type(CommandType::CMD_INVALID), mcuID(MCUID::MCU_PALM), commandID(0), payload(0) {}
     CommandMessagePayload(CommandType cType, MCUID mid, uint16_t cid, uint32_t data)
         : type(cType), mcuID(mid), commandID(cid), payload(data) {}
 

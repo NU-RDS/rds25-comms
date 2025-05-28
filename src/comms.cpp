@@ -51,7 +51,6 @@ Option<CommsTickResult> CommsController::tick() {
         s.second.tick();
     }
 
-
     RawCommsMessage message;
     if (!_driver.receiveMessage(&message)) return Option<CommsTickResult>::none();
 
@@ -96,25 +95,24 @@ MCUID CommsController::me() const {
 void CommsController::handleCommand(RawCommsMessage message) {
     Result<CommandMessagePayload> cmdRes = CommandMessagePayload::fromRaw(message);
     if (cmdRes.isError()) {
-        COMMS_DEBUG_PRINT_ERROR("Unable to handle command: %s,", cmdRes.error);
+        COMMS_DEBUG_PRINT_ERROR("Unable to handle command: %s,", cmdRes.error());
         return;
     }
 
     CommandMessagePayload cmd = cmdRes.value();
-    COMMS_DEBUG_PRINT("Recieved a command! From %d, command type %d, command id %d\n ",
-                      senderInfo.mcu, cmd.type, cmd.commandID);
 
     switch (cmd.type) {
         case CMD_BEGIN:
-            _cmdBuf.startExecution();
+            handleCommandBegin(info, cmd);
             break;
         case CMD_STOP:
-            // stop
+            handleCommandStop(info, cmd);
             break;
         case CMD_MOTOR_CONTROL:
-            _cmdBuf.addCommand(cmd);
+            handleCommandMotorControl(info, cmd);
+            break;
         case CMD_SENSOR_TOGGLE:
-            // control sensor stream
+            handleCommandSensorToggle(info, cmd);
             break;
         default:
             COMMS_DEBUG_PRINT_ERRORLN("Invalid command recieved!");
@@ -123,11 +121,41 @@ void CommsController::handleCommand(RawCommsMessage message) {
 }
 
 void CommsController::handleHeartbeat(RawCommsMessage message) {
-    COMMS_DEBUG_PRINT_ERROR("Unimplemented!!!");
+    // send back a response if needed
+    Option<MessageInfo> senderInfoOpt = MessageInfo::getInfo(message.id);
+    if (senderInfoOpt.isNone()) {
+        return;
+    }
+    MessageInfo info = senderInfoOpt.value();
 }
 
 void CommsController::handleError(RawCommsMessage message) {
     COMMS_DEBUG_PRINT_ERROR("Received errror! %d", message.payload);
 }
+
+void CommsController::handleCommandBegin(MessageInfo info, CommandMessagePayload payload) {
+    _cmdBuf.startExecution();
+}
+
+void CommsController::handleCommandStop(MessageInfo info, CommandMessagePayload payload) {
+    COMMS_DEBUG_PRINT_ERROR("Command stop unimplemented!!!");
+}
+
+void CommsController::handleCommandMotorControl(MessageInfo info, CommandMessagePayload payload) {
+    _cmdBuf.addCommand(payload);
+}
+
+void CommsController::handleCommandSensorToggle(MessageInfo info, CommandMessagePayload payload) {
+    SensorToggleCommandOpt toggleOpt;
+    toggleOpt.payload = payload.payload;
+
+    if (_sensorDatastreams.find(toggleOpt.sensorID) == _sensorDatastreams.end()) {
+        // unable to find
+        COMMS_DEBUG_PRINT_ERRORLN(
+            "Unable to enable/disable sensor with id %d -- don't have one registered!",
+            toggleOpt.sensorID);
+    } else {
+        _sensorDatastreams[toggleOpt.sensorID].setStatus(toggleOpt.enable);
+    }
 
 }  // namespace comms

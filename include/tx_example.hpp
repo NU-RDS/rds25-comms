@@ -47,6 +47,18 @@ void loop() {
 
     g_controller.sendCommand(sensorCmd);
 
+    // print out the data recieved by the sensor
+    Option<float> sensorValueOpt =
+        g_controller.getSensorValue(MCUID::MCU_LOW_LEVEL_0,  // who is sending the sensor data?
+                                    0                        // what sensor do we want?
+        );
+
+    if (sensorValueOpt.isNone()) {
+        Serial.println("No sensor value yet!");
+    } else {
+        Serial.printf("%0.2f\n", sensorValueOpt.value());
+    }
+
     delay(100);  // bad
 }
 
