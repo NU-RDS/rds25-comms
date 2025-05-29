@@ -4,7 +4,7 @@
 #include <FlexCAN_T4.h>
 
 #include <cstring>
-
+#include "debug.hpp"
 #include "comms_driver.hpp"
 
 namespace comms {
@@ -43,10 +43,14 @@ class TeensyCANDriver : public CommsDriver {
             case 1:
                 _can1.begin();
                 _can1.setBaudRate(baudRateNum);
+                _can1.enableFIFO();
+                _can1.setFIFOFilter(0, 0x000, 0x7FF, STD);
                 break;
             case 2:
                 _can2.begin();
                 _can2.setBaudRate(baudRateNum);
+                _can2.enableFIFO();  
+                _can2.setFIFOFilter(0, 0x000, 0x7FF, STD);
                 break;
         }
 
@@ -59,7 +63,7 @@ class TeensyCANDriver : public CommsDriver {
         CAN_message_t msg;
         msg.id = message.id;
 
-        Serial.printf("Sending message with id 0x%04x\n", message.id);
+        COMMS_DEBUG_PRINT("Sending message with id 0x%04x\n", message.id);
         // memcpy(msg.buf, &message.payload, 8);
 
         switch (_busNum) {
@@ -88,6 +92,8 @@ class TeensyCANDriver : public CommsDriver {
 
         message->id = res.id;
         memcpy(&message->payload, res.buf, 8);
+
+        COMMS_DEBUG_PRINT("Recieved message with id 0x%04x\n", message->id);
 
         return true;
     }

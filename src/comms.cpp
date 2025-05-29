@@ -57,7 +57,7 @@ Option<CommsTickResult> CommsController::tick() {
     }
 
     // update our heartbeat manager
-    bool good = _heartbeatManager.tick();
+    bool good = _heartbeatManager.tick() || _me != MCUID::MCU_HIGH_LEVEL;
     if (!good) {
         COMMS_DEBUG_PRINT_ERRORLN("Heartbeat failure!");
     }

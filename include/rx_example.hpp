@@ -10,7 +10,7 @@ using namespace comms;
 namespace rx {
 
 // bus num, baudrate
-TeensyCANDriver<3, CANBaudRate::CBR_500KBPS> g_canDriver;
+TeensyCANDriver<1, CANBaudRate::CBR_500KBPS> g_canDriver;
 
 CommsController g_controller{
     g_canDriver,
