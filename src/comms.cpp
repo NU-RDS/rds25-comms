@@ -39,17 +39,27 @@ Option<float> CommsController::getSensorValue(MCUID sender, uint8_t sensorID) {
     if (found) return Option<float>::some(status.value);
 
     return Option<float>::none();
-};
+}
+
+void CommsController::enableHeartbeatRequestDispatching(uint32_t intvervalMs, const std::vector<MCUID> toMonitor) {
+    _heartbeatManager.initialize(intvervalMs, toMonitor);
+}
 
 void CommsController::addSensor(uint32_t updateRateMs, uint8_t id, std::shared_ptr<Sensor> sensor) {
     SensorDatastream stream(&_driver, me(), updateRateMs, id, sensor);
     _sensorDatastreams[id] = stream;
-};
+}
 
 Option<CommsTickResult> CommsController::tick() {
     // update all of our sensor datastreams
     for (auto s : _sensorDatastreams) {
         s.second.tick();
+    }
+
+    // update our heartbeat manager
+    bool good = _heartbeatManager.tick();
+    if (!good) {
+        COMMS_DEBUG_PRINT_ERRORLN("Heartbeat failure!");
     }
 
     RawCommsMessage message;

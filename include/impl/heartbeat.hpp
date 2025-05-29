@@ -43,7 +43,10 @@ class HeartbeatManager {
    public:
     HeartbeatManager(CommsDriver* driver, MCUID me);
 
+    void initialize(uint32_t intervalTimeMs, const std::vector<MCUID> nodesToCheck);
+
     bool tick();
+    
     void updateHeartbeatStatus(MCUID id);
     void sendHeartbeatRequest(MCUID destination);
     void sendHeartbeatResponse();
@@ -54,6 +57,10 @@ class HeartbeatManager {
     CommsDriver* _driver;
     MCUID _me;
 
+    uint32_t _intervalTimeMs;
+    uint32_t _lastDispatch;
+
+    std::vector<MCUID> _nodesToCheck;
     std::vector<MCUID> _badNodes;
 };
 

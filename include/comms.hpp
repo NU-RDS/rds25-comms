@@ -26,6 +26,7 @@ class CommsController {
     // high-level controls
     void sendCommand(CommandMessagePayload payload);
     Option<float> getSensorValue(MCUID sender, uint8_t sensorID);
+    void enableHeartbeatRequestDispatching(uint32_t intervalMs, const std::vector<MCUID> toMonitor);
 
     // low-level controls
     void addSensor(uint32_t updateRateMs, uint8_t sensorID, std::shared_ptr<Sensor> sensor);

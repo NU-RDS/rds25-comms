@@ -10,7 +10,7 @@ using namespace comms;
 namespace tx {
 
 // bus num, baudrate
-TeensyCANDriver<2, CANBaudRate::CBR_500KBPS> g_canDriver;
+TeensyCANDriver<1, CANBaudRate::CBR_500KBPS> g_canDriver;
 
 CommsController g_controller{
     g_canDriver,
@@ -26,6 +26,11 @@ void setup() {
 void loop() {
     Serial.println("Loop!");
     g_controller.tick();
+
+    // enable heartbeats
+    g_controller.enableHeartbeatRequestDispatching(100,                      // how often?
+                                                   {MCUID::MCU_LOW_LEVEL_0}  // who to monitor?
+    );
 
     MotorControlCommandOpt commandDesc(MCUID::MCU_LOW_LEVEL_0,               // who is recieving it?
                                        0,                                    // what motor?

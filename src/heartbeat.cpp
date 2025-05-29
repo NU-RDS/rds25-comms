@@ -9,8 +9,29 @@ namespace comms {
 HeartbeatManager::HeartbeatManager(CommsDriver* driver, MCUID me)
     : _driver(driver), _me(me), _myStatus{0} {}
 
+void HeartbeatManager::initialize(uint32_t intervalTimeMs, const std::vector<MCUID> nodesToCheck) {
+    _nodesToCheck = nodesToCheck;
+    _lastDispatch = millis();
+    _intervalTimeMs = intervalTimeMs;
+    // send out first requests to nodes
+    for (MCUID id : _nodesToCheck) {
+        sendHeartbeatRequest(id);
+    }
+}
+
 bool HeartbeatManager::tick() {
-    if (_me != MCUID::MCU_HIGH_LEVEL) return;
+    if (_me != MCUID::MCU_HIGH_LEVEL) return false;
+
+    // send out requests if needed
+    if (millis() - _lastDispatch >= _intervalTimeMs) {
+        // dispatch
+        for (MCUID id : _nodesToCheck) {
+            sendHeartbeatRequest(id);
+        }
+
+        _lastDispatch = millis();
+    }
+
 
     _badNodes.clear();
 
