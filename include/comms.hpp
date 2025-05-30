@@ -12,10 +12,16 @@
 #include "impl/heartbeat.hpp"
 
 namespace comms {
-
+          
 struct CommsTickResult {
     RawCommsMessage rawMessage;
     MessageInfo info;
+};
+
+struct CommandAcknowledgementInfo {
+    RawCommsMessage message;
+    uint32_t lastSent;
+    uint8_t numRetries;
 };
 
 class CommsController {
@@ -35,6 +41,10 @@ class CommsController {
     MCUID me() const;
 
    private:
+    void updateDatastreams();
+    void updateHeartbeats();
+    void updateCommandAcknowledgements();
+
     void handleCommand(MessageInfo info, RawCommsMessage message);
     void handleHeartbeat(MessageInfo info, RawCommsMessage message);
     void handleError(MessageInfo info, RawCommsMessage message);
@@ -48,6 +58,8 @@ class CommsController {
     CommandBuffer _cmdBuf;
 
     std::unordered_map<uint8_t, SensorDatastream> _sensorDatastreams;
+    std::unordered_map<uint16_t, CommandAcknowledgementInfo> _unackedCommands;
+    std::vector<uint16_t> _toRemoveUnackedCommands;
     std::vector<SensorStatus> _sensorStatuses;
 
     HeartbeatManager _heartbeatManager;

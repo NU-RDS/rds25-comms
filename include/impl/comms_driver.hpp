@@ -33,7 +33,7 @@ class CommsDriver {
         _callbackTable[id].push_back(callback);
     }
 
-    bool receiveMessage(RawCommsMessage* res) { return false; }
+    virtual bool receiveMessage(RawCommsMessage* res) = 0;
 
    private:
     std::unordered_map<uint32_t, std::vector<std::function<void(const RawCommsMessage&)>>>

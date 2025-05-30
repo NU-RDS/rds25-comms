@@ -10,6 +10,16 @@ void CommsController::initialize() {
 }
 
 void CommsController::sendCommand(CommandMessagePayload payload) {
+    updateDatastreams();
+    updateHeartbeats();
+    updateCommandAcknowledgements();
+
+    if (_me != MCUID::MCU_HIGH_LEVEL) {
+        // we should not be able to send the command
+        COMMS_DEBUG_PRINT_ERRORLN("Unable to send a command! We are not high level!");
+        return;
+    }
+
     RawCommsMessage raw;
     raw.payload = payload.raw;
 
@@ -20,8 +30,15 @@ void CommsController::sendCommand(CommandMessagePayload payload) {
         return;
     }
     raw.id = idOpt.value();
-
     _driver.sendMessage(raw);
+
+    // add this to the list of unacknowledged commands
+    CommandAcknowledgementInfo ackInfo;
+    ackInfo.lastSent = millis();
+    ackInfo.numRetries = 0;
+    ackInfo.message = raw;
+
+    _unackedCommands[payload.commandID] = ackInfo;
 }
 
 Option<float> CommsController::getSensorValue(MCUID sender, uint8_t sensorID) {
@@ -41,7 +58,8 @@ Option<float> CommsController::getSensorValue(MCUID sender, uint8_t sensorID) {
     return Option<float>::none();
 }
 
-void CommsController::enableHeartbeatRequestDispatching(uint32_t intvervalMs, const std::vector<MCUID> toMonitor) {
+void CommsController::enableHeartbeatRequestDispatching(uint32_t intvervalMs,
+                                                        const std::vector<MCUID> toMonitor) {
     _heartbeatManager.initialize(intvervalMs, toMonitor);
 }
 
@@ -51,17 +69,6 @@ void CommsController::addSensor(uint32_t updateRateMs, uint8_t id, std::shared_p
 }
 
 Option<CommsTickResult> CommsController::tick() {
-    // update all of our sensor datastreams
-    for (auto s : _sensorDatastreams) {
-        s.second.tick();
-    }
-
-    // update our heartbeat manager
-    bool good = _heartbeatManager.tick() || _me != MCUID::MCU_HIGH_LEVEL;
-    if (!good) {
-        COMMS_DEBUG_PRINT_ERRORLN("Heartbeat failure!");
-    }
-
     RawCommsMessage message;
     if (!_driver.receiveMessage(&message)) return Option<CommsTickResult>::none();
 
@@ -103,6 +110,47 @@ MCUID CommsController::me() const {
     return _me;
 }
 
+void CommsController::updateDatastreams() {
+    // update all of our sensor datastreams
+    for (auto s : _sensorDatastreams) {
+        s.second.tick();
+    }
+}
+
+void CommsController::updateHeartbeats() {
+    // update our heartbeat manager
+    bool good = _heartbeatManager.tick() || _me != MCUID::MCU_HIGH_LEVEL;
+    if (!good) {
+        COMMS_DEBUG_PRINT_ERRORLN("Heartbeat failure!");
+    }
+}
+
+void CommsController::updateCommandAcknowledgements() {
+    // figure out if we need to retransmit
+    uint32_t now = millis();
+    for (auto& pair : _unackedCommands) {
+        if (now - pair.second.lastSent > 1000) {
+            // retransmit
+            if (pair.second.numRetries <= 3) {
+                _driver.sendMessage(pair.second.message);
+                pair.second.numRetries++;
+                COMMS_DEBUG_PRINT("Retransmitting command...");
+            } else {
+                // mark for removal
+                CommandMessagePayload payload =
+                    CommandMessagePayload::fromRaw(pair.second.message).value();
+                _toRemoveUnackedCommands.push_back(payload.commandID);
+            }
+        }
+    }
+
+    // remove the commands
+    for (uint16_t commandID : _toRemoveUnackedCommands) {
+        _unackedCommands.erase(commandID);
+    }
+    _toRemoveUnackedCommands.clear();
+}
+
 void CommsController::handleCommand(MessageInfo info, RawCommsMessage message) {
     Result<CommandMessagePayload> cmdRes = CommandMessagePayload::fromRaw(message);
     if (cmdRes.isError()) {
@@ -111,23 +159,41 @@ void CommsController::handleCommand(MessageInfo info, RawCommsMessage message) {
     }
 
     CommandMessagePayload cmd = cmdRes.value();
+    if (_me != MCUID::MCU_HIGH_LEVEL) {
+        // acknoweldge the command by copying the payload
+        RawCommsMessage ack;
+        ack.payload = cmd.raw;
+        _driver.sendMessage(ack);
 
-    switch (cmd.type) {
-        case CMD_BEGIN:
-            handleCommandBegin(info, cmd);
-            break;
-        case CMD_STOP:
-            handleCommandStop(info, cmd);
-            break;
-        case CMD_MOTOR_CONTROL:
-            handleCommandMotorControl(info, cmd);
-            break;
-        case CMD_SENSOR_TOGGLE:
-            handleCommandSensorToggle(info, cmd);
-            break;
-        default:
-            COMMS_DEBUG_PRINT_ERRORLN("Invalid command recieved!");
-            break;
+        switch (cmd.type) {
+            case CMD_BEGIN:
+                handleCommandBegin(info, cmd);
+                break;
+            case CMD_STOP:
+                handleCommandStop(info, cmd);
+                break;
+            case CMD_MOTOR_CONTROL:
+                handleCommandMotorControl(info, cmd);
+                break;
+            case CMD_SENSOR_TOGGLE:
+                handleCommandSensorToggle(info, cmd);
+                break;
+            default:
+                COMMS_DEBUG_PRINT_ERRORLN("Invalid command recieved!");
+                break;
+        }
+    } else {
+        // we are recieving an acknowledgement
+        // check if it's true
+        if (_unackedCommands.find(cmd.commandID) == _unackedCommands.end()) {
+            // we recieved an ack for a command that we never sent
+            COMMS_DEBUG_PRINT_ERRORLN("Received acknowledgement for command %d but don't need one!",
+                                      cmd.commandID);
+            return;
+        }
+
+        // erase it from the unacked commdns
+        _unackedCommands.erase(cmd.commandID);
     }
 }
 
