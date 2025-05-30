@@ -64,6 +64,9 @@ class CommsController {
 
     HeartbeatManager _heartbeatManager;
 
+    bool _startCommandEnqueued = false;
+    RawCommsMessage _startCommandMessage;
+
     MCUID _me;
 };
 

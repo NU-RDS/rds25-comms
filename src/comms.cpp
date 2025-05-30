@@ -10,10 +10,6 @@ void CommsController::initialize() {
 }
 
 void CommsController::sendCommand(CommandMessagePayload payload) {
-    updateDatastreams();
-    updateHeartbeats();
-    updateCommandAcknowledgements();
-
     if (_me != MCUID::MCU_HIGH_LEVEL) {
         // we should not be able to send the command
         COMMS_DEBUG_PRINT_ERRORLN("Unable to send a command! We are not high level!");
@@ -30,6 +26,15 @@ void CommsController::sendCommand(CommandMessagePayload payload) {
         return;
     }
     raw.id = idOpt.value();
+
+    if (payload.type == CommandType::CMD_BEGIN) {
+        // enqueue the command
+        _startCommandEnqueued = true;
+        _startCommandMessage = raw;
+        COMMS_DEBUG_PRINTLN("Enqueuing start command!");
+        return;
+    }
+
     _driver.sendMessage(raw);
 
     // add this to the list of unacknowledged commands
@@ -69,6 +74,16 @@ void CommsController::addSensor(uint32_t updateRateMs, uint8_t id, std::shared_p
 }
 
 Option<CommsTickResult> CommsController::tick() {
+    updateDatastreams();
+    updateHeartbeats();
+    updateCommandAcknowledgements();
+
+    if (_startCommandEnqueued && _unackedCommands.size() == 0) {
+        // we are good to go!
+        _driver.sendMessage(_startCommandMessage);
+        _startCommandEnqueued = false;
+    }
+
     RawCommsMessage message;
     if (!_driver.receiveMessage(&message)) return Option<CommsTickResult>::none();
 
