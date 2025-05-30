@@ -32,7 +32,6 @@ bool HeartbeatManager::tick() {
         _lastDispatch = millis();
     }
 
-
     _badNodes.clear();
 
     for (auto statusPair : _requestStatuses) {
@@ -118,7 +117,7 @@ void HeartbeatManager::sendHeartbeatRequest(MCUID destination) {
 
     // update the hearbeat requests statues
     HeartbeatRequestStatus status = {0};
-    if (_requestStatuses.find(destination) !=_requestStatuses.end()) {
+    if (_requestStatuses.find(destination) != _requestStatuses.end()) {
         status = _requestStatuses[destination];
     }
 

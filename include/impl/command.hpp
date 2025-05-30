@@ -164,8 +164,6 @@ class CommandBuilder {
         return CommandMessagePayload(CommandType::CMD_SENSOR_TOGGLE, sender, __cmdCounter++,
                                      sensorToggleCmd.payload);
     }
-
-    
 };
 
 /// @brief Handles specific commands, determines if events are parallizable, etc.

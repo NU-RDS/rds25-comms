@@ -12,7 +12,7 @@
 #include "impl/heartbeat.hpp"
 
 namespace comms {
-          
+
 struct CommsTickResult {
     RawCommsMessage rawMessage;
     MessageInfo info;

@@ -46,7 +46,7 @@ class HeartbeatManager {
     void initialize(uint32_t intervalTimeMs, const std::vector<MCUID> nodesToCheck);
 
     bool tick();
-    
+
     void updateHeartbeatStatus(MCUID id);
     void sendHeartbeatRequest(MCUID destination);
     void sendHeartbeatResponse();

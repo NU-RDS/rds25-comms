@@ -14,17 +14,25 @@ static FlexCAN_T4<CAN2, RX_SIZE_256, TX_SIZE_16> _can2;
 
 enum CANBaudRate { CBR_100KBPS, CBR_125KBPS, CBR_250KBPS, CBR_500KBPS, CBR_1MBPS };
 
-static void __sniff(const CAN_message_t &msg) {
-  Serial.print("MB "); Serial.print(msg.mb);
-  Serial.print("  OVERRUN: "); Serial.print(msg.flags.overrun);
-  Serial.print("  LEN: "); Serial.print(msg.len);
-  Serial.print(" EXT: "); Serial.print(msg.flags.extended);
-  Serial.print(" TS: "); Serial.print(msg.timestamp);
-  Serial.print(" ID: "); Serial.print(msg.id, HEX);
-  Serial.print(" Buffer: ");
-  for ( uint8_t i = 0; i < msg.len; i++ ) {
-    Serial.print(msg.buf[i], HEX); Serial.print(" ");
-  } Serial.println();
+static void __sniff(const CAN_message_t& msg) {
+    Serial.print("MB ");
+    Serial.print(msg.mb);
+    Serial.print("  OVERRUN: ");
+    Serial.print(msg.flags.overrun);
+    Serial.print("  LEN: ");
+    Serial.print(msg.len);
+    Serial.print(" EXT: ");
+    Serial.print(msg.flags.extended);
+    Serial.print(" TS: ");
+    Serial.print(msg.timestamp);
+    Serial.print(" ID: ");
+    Serial.print(msg.id, HEX);
+    Serial.print(" Buffer: ");
+    for (uint8_t i = 0; i < msg.len; i++) {
+        Serial.print(msg.buf[i], HEX);
+        Serial.print(" ");
+    }
+    Serial.println();
 }
 
 template <uint8_t busNum, CANBaudRate baudRate>
@@ -63,7 +71,7 @@ class TeensyCANDriver : public CommsDriver {
             case 2:
                 _can2.begin();
                 _can2.setBaudRate(baudRateNum);
-                _can2.enableFIFO();  
+                _can2.enableFIFO();
                 _can2.setFIFOFilter(0, 0x000, 0x7FF, STD);
                 _can2.onReceive(__sniff);
                 break;
