@@ -37,6 +37,10 @@ class CommsController {
     // low-level controls
     void addSensor(uint32_t updateRateMs, uint8_t sensorID, std::shared_ptr<Sensor> sensor);
 
+    // general controls
+    void reportError(ErrorCode error, ErrorSeverity severity, ErrorBehavior behavior);
+    void clearError(ErrorCode error);
+
     Option<CommsTickResult> tick();
     MCUID me() const;
 

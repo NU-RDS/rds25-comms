@@ -77,11 +77,16 @@ class SensorDatastream {
     uint8_t _id;
     uint32_t _lastSendTime;
 };
+
 /// @brief Status decoded from a sensor message
 struct SensorStatus {
     MCUID sender;
     uint8_t sensorID;
     float value;
+};
+
+class SensorManager {
+   public:
 };
 
 }  // namespace comms
