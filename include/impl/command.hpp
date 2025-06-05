@@ -46,7 +46,7 @@ struct CommandMessagePayload {
         struct {
             // meta information (4 bytes)
             CommandType type;
-            MCUID mcuID;
+            MCUID mcuID;    
             uint16_t commandID;
             // last 4 bytes for command-specific things
             uint32_t payload;

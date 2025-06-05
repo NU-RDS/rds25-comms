@@ -52,6 +52,11 @@ struct ErrorMessagePayload {
     };
 };
 
+struct ManagedErrorStatus {
+    Error error;
+    uint32_t lastTransmissionTime;
+};
+
 /// @brief Handles errors within the system, responsible for sending errors, retransmission
 /// and calling handlers
 class ErrorManager {
@@ -73,9 +78,14 @@ class ErrorManager {
     /// @brief maps from error severity to a function for callback
     std::array<std::function<void(Error)>, ErrorSeverity::ES_COUNT> _errorHandlers;
 
+    /// @brief The
+    std::unordered_map<uint32_t, ManagedErrorStatus> _errorStatus;
+
     CommsDriver* _driver;
     MCUID _me;
     uint32_t _errorRetransmissionTimeMs;
+
+};
 
 }  // namespace comms
 

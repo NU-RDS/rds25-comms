@@ -10,6 +10,7 @@
 #include "impl/option.hpp"
 #include "impl/sensor.hpp"
 #include "impl/heartbeat.hpp"
+#include "impl/error.hpp"
 
 namespace comms {
 
@@ -67,6 +68,7 @@ class CommsController {
     std::vector<SensorStatus> _sensorStatuses;
 
     HeartbeatManager _heartbeatManager;
+    ErrorManager _errorManager;
 
     bool _startCommandEnqueued = false;
     RawCommsMessage _startCommandMessage;

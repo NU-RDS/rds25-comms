@@ -3,10 +3,11 @@
 namespace comms {
 
 CommsController::CommsController(CommsDriver& driver, MCUID id)
-    : _driver(driver), _me(id), _heartbeatManager(&driver, id) {}
+    : _driver(driver), _me(id), _heartbeatManager(&driver, id), _errorManager(&driver, id) {}
 
 void CommsController::initialize() {
     _driver.install();
+    _errorManager.initialize();
 }
 
 void CommsController::sendCommand(CommandMessagePayload payload) {
@@ -66,6 +67,14 @@ Option<float> CommsController::getSensorValue(MCUID sender, uint8_t sensorID) {
 void CommsController::enableHeartbeatRequestDispatching(uint32_t intvervalMs,
                                                         const std::vector<MCUID> toMonitor) {
     _heartbeatManager.initialize(intvervalMs, toMonitor);
+}
+
+void CommsController::reportError(ErrorCode error, ErrorSeverity severity, ErrorBehavior behavior) {
+    _errorManager.reportError(error, severity, behavior);
+}
+
+void CommsController::clearError(ErrorCode error) {
+    _errorManager.clearError(error);
 }
 
 void CommsController::addSensor(uint32_t updateRateMs, uint8_t id, std::shared_ptr<Sensor> sensor) {
