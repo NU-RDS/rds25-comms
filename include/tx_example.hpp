@@ -42,16 +42,6 @@ void loop() {
 
     g_controller.sendCommand(motorCmd);
 
-    SensorToggleCommandOpt toggleSensorDesc(MCUID::MCU_LOW_LEVEL_0,  // who is recieving this?
-                                            0,                       // what sensor?
-                                            true  // should it be outputing sensor values?
-    );
-
-    CommandMessagePayload sensorCmd =
-        CommandBuilder::sensorToggle(g_controller.me(), toggleSensorDesc);
-
-    g_controller.sendCommand(sensorCmd);
-
     // print out the data recieved by the sensor
     Option<float> sensorValueOpt =
         g_controller.getSensorValue(MCUID::MCU_LOW_LEVEL_0,  // who is sending the sensor data?

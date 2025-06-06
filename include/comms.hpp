@@ -10,18 +10,13 @@
 #include "impl/option.hpp"
 #include "impl/sensor.hpp"
 #include "impl/heartbeat.hpp"
+#include "impl/error.hpp"
 
 namespace comms {
 
 struct CommsTickResult {
     RawCommsMessage rawMessage;
     MessageInfo info;
-};
-
-struct CommandAcknowledgementInfo {
-    RawCommsMessage message;
-    uint32_t lastSent;
-    uint8_t numRetries;
 };
 
 class CommsController {
@@ -37,35 +32,29 @@ class CommsController {
     // low-level controls
     void addSensor(uint32_t updateRateMs, uint8_t sensorID, std::shared_ptr<Sensor> sensor);
 
+    // general controls
+    void reportError(ErrorCode error, ErrorSeverity severity, ErrorBehavior behavior);
+    void clearError(ErrorCode error);
+
     Option<CommsTickResult> tick();
     MCUID me() const;
+
+    void setUnregisteredMessageHandler(std::function<void(RawCommsMessage)> handler);
 
    private:
     void updateDatastreams();
     void updateHeartbeats();
-    void updateCommandAcknowledgements();
-
-    void handleCommand(MessageInfo info, RawCommsMessage message);
-    void handleHeartbeat(MessageInfo info, RawCommsMessage message);
-    void handleError(MessageInfo info, RawCommsMessage message);
-
-    void handleCommandBegin(MessageInfo info, CommandMessagePayload payload);
-    void handleCommandStop(MessageInfo info, CommandMessagePayload payload);
-    void handleCommandMotorControl(MessageInfo info, CommandMessagePayload payload);
-    void handleCommandSensorToggle(MessageInfo info, CommandMessagePayload payload);
 
     CommsDriver& _driver;
-    CommandBuffer _cmdBuf;
+
+    std::function<void(RawCommsMessage)> _unregisteredMessageHandler;
 
     std::unordered_map<uint8_t, SensorDatastream> _sensorDatastreams;
-    std::unordered_map<uint16_t, CommandAcknowledgementInfo> _unackedCommands;
-    std::vector<uint16_t> _toRemoveUnackedCommands;
     std::vector<SensorStatus> _sensorStatuses;
 
     HeartbeatManager _heartbeatManager;
-
-    bool _startCommandEnqueued = false;
-    RawCommsMessage _startCommandMessage;
+    ErrorManager _errorManager;
+    CommandManager _commandManager;
 
     MCUID _me;
 };

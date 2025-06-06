@@ -28,12 +28,7 @@ enum CommandType : uint8_t {
     // General Commands, for any MCU
     CMD_BEGIN,  // begin the operation of the device
     CMD_STOP,   // end the operation of the device
-
-    // Motor-Driver Specific Commands
-    CMD_MOTOR_CONTROL,
-
-    // Sensor-Board Specific Commands
-    CMD_SENSOR_TOGGLE,
+    CMD_MOTOR_CONTROL,     // Motor-Driver Specific Commands
     CMD_INVALID,
     CMD_COUNT
 };
@@ -126,21 +121,6 @@ struct EndExecutionCommandOpt {
     EndExecutionCommandOpt(MCUID targetID) : targetID(targetID) {}
 };
 
-struct SensorToggleCommandOpt {
-    union {
-        uint32_t payload;
-        struct {
-            MCUID targetID;
-            uint8_t sensorID;
-            bool enable;
-        };
-    };
-
-    SensorToggleCommandOpt() : payload(0) {}
-    SensorToggleCommandOpt(MCUID targetID, uint8_t sensorID, bool enable)
-        : targetID(targetID), sensorID(sensorID), enable(enable) {}
-};
-
 class CommandBuilder {
    public:
     static uint16_t __cmdCounter;
@@ -153,16 +133,6 @@ class CommandBuilder {
     static CommandMessagePayload endExecution(MCUID sender, BeginExecutionCommandOpt beginCmd) {
         return CommandMessagePayload(CommandType::CMD_BEGIN, sender, __cmdCounter++,
                                      beginCmd.payload);
-    }
-
-    static CommandMessagePayload sensorToggle(MCUID sender, EndExecutionCommandOpt endCmd) {
-        return CommandMessagePayload(CommandType::CMD_STOP, sender, __cmdCounter++, endCmd.payload);
-    }
-
-    static CommandMessagePayload sensorToggle(MCUID sender,
-                                              SensorToggleCommandOpt sensorToggleCmd) {
-        return CommandMessagePayload(CommandType::CMD_SENSOR_TOGGLE, sender, __cmdCounter++,
-                                     sensorToggleCmd.payload);
     }
 };
 
@@ -261,6 +231,34 @@ class CommandBuffer {
     /// @param currentSlice The current command slice.
     /// @return The next CommandSlice.
     CommandSlice findNextSlice(const CommandSlice& currentSlice);
+};
+
+struct CommandAcknowledgementInfo {
+    RawCommsMessage message;
+    uint32_t lastSent;
+    uint8_t numRetries;
+};
+
+class CommandManager {
+   public:
+    CommandManager(CommsDriver* driver, MCUID me);
+
+    void sendCommand(CommandMessagePayload payload);
+    void handleCommandMessage(MessageInfo info, RawCommsMessage message);
+
+    void tick();
+
+   private:
+    std::unordered_map<uint16_t, CommandAcknowledgementInfo> _unackedCommands;
+    std::vector<uint16_t> _toRemoveUnackedCommands;
+
+    bool _startCommandEnqueued = false;
+    RawCommsMessage _startCommandMessage;
+
+    CommsDriver* _driver;
+    MCUID _me;
+
+    CommandBuffer _cmdBuf;
 };
 
 }  // namespace comms
