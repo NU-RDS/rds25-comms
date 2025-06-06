@@ -54,6 +54,7 @@ void CommsController::addSensor(uint32_t updateRateMs, uint8_t id, std::shared_p
 }
 
 Option<CommsTickResult> CommsController::tick() {
+    COMMS_DEBUG_PRINTLN("Listening...");
     updateDatastreams();
     updateHeartbeats();
     _commandManager.tick();

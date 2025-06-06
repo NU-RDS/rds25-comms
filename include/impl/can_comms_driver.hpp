@@ -65,14 +65,14 @@ class TeensyCANDriver : public CommsDriver {
                 _can1.begin();
                 _can1.setBaudRate(baudRateNum);
                 _can1.enableFIFO();
-                _can1.setFIFOFilter(0, 0x000, 0x7FF, STD);
+                _can1.setFIFOFilter(0, 0x000, 0x000, STD);
                 _can1.onReceive(__sniff);
                 break;
             case 2:
                 _can2.begin();
                 _can2.setBaudRate(baudRateNum);
                 _can2.enableFIFO();
-                _can2.setFIFOFilter(0, 0x000, 0x7FF, STD);
+                _can2.setFIFOFilter(0, 0x000, 0x000, STD);
                 _can2.onReceive(__sniff);
                 break;
         }
@@ -85,6 +85,7 @@ class TeensyCANDriver : public CommsDriver {
     void sendMessage(const RawCommsMessage& message) {
         CAN_message_t msg;
         msg.id = message.id;
+        msg.len = message.length;
 
         COMMS_DEBUG_PRINT("Sending message with id 0x%04x\n", message.id);
         memcpy(msg.buf, &message.payload, 8);
@@ -102,7 +103,7 @@ class TeensyCANDriver : public CommsDriver {
     bool receiveMessage(RawCommsMessage* message) {
         COMMS_DEBUG_PRINTLN("Listening...");
         CAN_message_t res;
-        bool found = false;
+        int found = 0;
         switch (_busNum) {
             case 1:
                 found = _can1.read(res);
@@ -112,7 +113,7 @@ class TeensyCANDriver : public CommsDriver {
                 break;
         }
 
-        if (!found) return false;
+        if (found == 0) return false;
 
         message->id = res.id;
         memcpy(&message->payload, res.buf, 8);
