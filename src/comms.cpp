@@ -7,7 +7,7 @@ CommsController::CommsController(CommsDriver& driver, MCUID id)
 
 void CommsController::initialize() {
     _driver.install();
-    _errorManager.initialize();
+    _errorManager.initialize(500);
 }
 
 void CommsController::sendCommand(CommandMessagePayload payload) {
@@ -98,17 +98,31 @@ Option<CommsTickResult> CommsController::tick() {
 
     Option<MessageInfo> senderInfoOpt = MessageInfo::getInfo(message.id);
     if (senderInfoOpt.isNone()) {
-        COMMS_DEBUG_PRINT_ERROR("Recieved an unregistered ID! 0x%04x\n", message.id);
+        if (_unregisteredMessageHandler != nullptr) {
+            COMMS_DEBUG_PRINTLN("Unregistered message, but handling it gracefully!");
+            _unregisteredMessageHandler(message);
+        } else {
+            COMMS_DEBUG_PRINT_ERROR("Recieved an unregistered ID! 0x%04x\n", message.id);
+        }
         return Option<CommsTickResult>::none();
     }
     MessageInfo info = senderInfoOpt.value();
 
     if (info.sender == _me) {
-        COMMS_DEBUG_PRINT_ERRORLN("Recieved a message from self!!!");
+        if (_unregisteredMessageHandler != nullptr) {
+            COMMS_DEBUG_PRINTLN("Unregistered message, but handling it gracefully!");
+            _unregisteredMessageHandler(message);
+        } else {
+            COMMS_DEBUG_PRINT_ERRORLN("Recieved a message from self!!!");
+        }
         return Option<CommsTickResult>::none();
     }
 
     if (!info.shouldListen(_me)) {
+        if (_unregisteredMessageHandler != nullptr) {
+            COMMS_DEBUG_PRINTLN("Unregistered message, but handling it gracefully!");
+            _unregisteredMessageHandler(message);
+        }
         return Option<CommsTickResult>::none();
     }
 
@@ -132,6 +146,10 @@ Option<CommsTickResult> CommsController::tick() {
 
 MCUID CommsController::me() const {
     return _me;
+}
+
+void CommsController::setUnregisteredMessageHandler(std::function<void(RawCommsMessage)> handler) {
+    _unregisteredMessageHandler = handler;
 }
 
 void CommsController::updateDatastreams() {

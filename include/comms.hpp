@@ -45,6 +45,8 @@ class CommsController {
     Option<CommsTickResult> tick();
     MCUID me() const;
 
+    void setUnregisteredMessageHandler(std::function<void(RawCommsMessage)> handler);
+
    private:
     void updateDatastreams();
     void updateHeartbeats();
@@ -61,6 +63,8 @@ class CommsController {
 
     CommsDriver& _driver;
     CommandBuffer _cmdBuf;
+
+    std::function<void(RawCommsMessage)> _unregisteredMessageHandler;
 
     std::unordered_map<uint8_t, SensorDatastream> _sensorDatastreams;
     std::unordered_map<uint16_t, CommandAcknowledgementInfo> _unackedCommands;

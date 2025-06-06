@@ -10,12 +10,10 @@
 
 namespace comms {
 
-
 uint32_t ErrorManager::_errorCounter = 0;
 
 ErrorManager::ErrorManager(CommsDriver* driver, MCUID me)
     : _driver(driver), _me(me), _errorRetransmissionTimeMs(0) {
-    // Nothing else to do here; initialize() will set up callbacks and interval.
 }
 
 void ErrorManager::initialize(uint32_t errorRetransmissionTimeMs) {
