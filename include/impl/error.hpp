@@ -66,7 +66,7 @@ class ErrorManager {
     void initialize(uint32_t errorRetransitionTimeMs = 100);
     void tick();
     void addErrorHandler(ErrorSeverity severity, std::function<void(Error)> error);
-    void handleErrorRecieve(MessageInfo sender, ErrorMessagePayload payload);
+    void handleErrorRecieve(MessageInfo sender, RawCommsMessage payload);
 
     void reportError(ErrorCode error, ErrorSeverity severity, ErrorBehavior behavior);
     void clearError(ErrorCode error);

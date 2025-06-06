@@ -19,12 +19,6 @@ struct CommsTickResult {
     MessageInfo info;
 };
 
-struct CommandAcknowledgementInfo {
-    RawCommsMessage message;
-    uint32_t lastSent;
-    uint8_t numRetries;
-};
-
 class CommsController {
    public:
     CommsController(CommsDriver& driver, MCUID id);
@@ -50,32 +44,17 @@ class CommsController {
    private:
     void updateDatastreams();
     void updateHeartbeats();
-    void updateCommandAcknowledgements();
-
-    void handleCommand(MessageInfo info, RawCommsMessage message);
-    void handleHeartbeat(MessageInfo info, RawCommsMessage message);
-    void handleError(MessageInfo info, RawCommsMessage message);
-
-    void handleCommandBegin(MessageInfo info, CommandMessagePayload payload);
-    void handleCommandStop(MessageInfo info, CommandMessagePayload payload);
-    void handleCommandMotorControl(MessageInfo info, CommandMessagePayload payload);
-    void handleCommandSensorToggle(MessageInfo info, CommandMessagePayload payload);
 
     CommsDriver& _driver;
-    CommandBuffer _cmdBuf;
 
     std::function<void(RawCommsMessage)> _unregisteredMessageHandler;
 
     std::unordered_map<uint8_t, SensorDatastream> _sensorDatastreams;
-    std::unordered_map<uint16_t, CommandAcknowledgementInfo> _unackedCommands;
-    std::vector<uint16_t> _toRemoveUnackedCommands;
     std::vector<SensorStatus> _sensorStatuses;
 
     HeartbeatManager _heartbeatManager;
     ErrorManager _errorManager;
-
-    bool _startCommandEnqueued = false;
-    RawCommsMessage _startCommandMessage;
+    CommandManager _commandManager;
 
     MCUID _me;
 };

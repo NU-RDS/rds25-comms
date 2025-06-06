@@ -51,22 +51,24 @@ void ErrorManager::tick() {
 }
 
 void ErrorManager::addErrorHandler(ErrorSeverity severity, std::function<void(Error)> handler) {
-    if (severity < ES_COUNT) {
+    if (severity < ErrorSeverity::ES_COUNT) {
         _errorHandlers[static_cast<size_t>(severity)] = handler;
     }
 }
 
-void ErrorManager::handleErrorRecieve(MessageInfo sender, ErrorMessagePayload payload) {
+void ErrorManager::handleErrorRecieve(MessageInfo sender, RawCommsMessage message) {
     // If a handler was registered for this severity, call it.
+    ErrorMessagePayload payload;
+    payload.raw = message.payload;
     ErrorSeverity sev = payload.error.severity;
-    if (sev < ES_COUNT) {
+    if (sev < ErrorSeverity::ES_COUNT) {
         auto& maybeHandler = _errorHandlers[static_cast<size_t>(sev)];
         if (maybeHandler) {
             maybeHandler(payload.error);
         }
     }
 
-    if (payload.error.behavior == EB_LATCH) {
+    if (payload.error.behavior == ErrorBehavior::EB_LATCH) {
         ManagedErrorStatus& status = _errorStatus[payload.errorNumber];
         status.error = payload.error;
         status.lastTransmissionTime = millis();  // store the time we first saw it

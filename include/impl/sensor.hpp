@@ -85,10 +85,6 @@ struct SensorStatus {
     float value;
 };
 
-class SensorManager {
-   public:
-};
-
 }  // namespace comms
 
 #endif  // __SENSOR_H__
