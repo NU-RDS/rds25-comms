@@ -50,6 +50,7 @@ void CommsController::clearError(ErrorCode error) {
 
 void CommsController::addSensor(uint32_t updateRateMs, uint8_t id, std::shared_ptr<Sensor> sensor) {
     SensorDatastream stream(&_driver, me(), updateRateMs, id, sensor);
+    stream.initialize();
     _sensorDatastreams[id] = stream;
 }
 
@@ -152,6 +153,7 @@ void CommsController::updateDatastreams() {
     // update all of our sensor datastreams
     for (auto s : _sensorDatastreams) {
         s.second.tick();
+        delayMicroseconds(1);
     }
 }
 
