@@ -115,7 +115,7 @@ Option<CommsTickResult> CommsController::tick() {
                 // find a sensor status and update it
                 bool found = false;
                 for (SensorStatus &status : _sensorStatuses) {
-                    if (status.sender == info.sender && status.value == sensorPayload.sensorID) {
+                    if (status.sender == info.sender && status.sensorID == sensorPayload.sensorID) {
                         // update this guy
                         found = true;
                         status.value = sensorPayload.value;
