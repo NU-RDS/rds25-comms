@@ -87,7 +87,7 @@ class TeensyCANDriver : public CommsDriver {
         msg.id = message.id;
 
         COMMS_DEBUG_PRINT("Sending message with id 0x%04x\n", message.id);
-        // memcpy(msg.buf, &message.payload, 8);
+        memcpy(msg.buf, &message.payload, 8);
 
         switch (_busNum) {
             case 1:
