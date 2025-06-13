@@ -323,3 +323,24 @@ The general idea is that errors have different types, severities, and behaviors.
 
 The error handling system is designed to be modular and extensible, allowing for easy addition of new error types and handling mechanisms. The `ErrorManager` class is responsible for managing errors, and it provides methods for adding, removing, and checking errors.
 
+## RDS25 and Why This Library Failed to Integrate
+
+There was a lot of work put into this library, but it ultimately failed to integrate with the RDS25 project. The main reasons for this were:
+* *Electrical Architecture fell apart*: Because we were scrambling to get firmware and hardware working, we had to cut corners. This involved removing joint encoders, removing the multi tiered architecture, etc. This meant, that the usecase for this library was no longer valid, and it was not able to be used in the final design.
+* *CAN Bus Load*: Swapping to ODrives caused the bus load to increase significantly, leading to communication issues and dropped messages. This was very evident when we tried to use all 7 odrives at once, with joint encoders. The bus load was at 95% without any sensors. We were unable to send any sensor data at a reasonable rate, and the system was unable to function correctly. Stale sensor data is way worse than no sensor data, and this was a major issue.
+* *Low Baud Rate due to ODrive*: The ODrive's CAN bus was set to a low baud rate, which caused issues with communication. This meant that we were unable to send commands and receive sensor data in a timely manner, leading to a lot of dropped messages and communication errors. Ideally, we would be using 1Mbps, but we were limited to 250kbps due to the ODrive's settings.
+
+The library has good bones to begin building a more robust system, and fully believe that integrating it into a real, robust system with the original electrical architecture in mind would require little effort. The library is modular, extensible, and easy to use, and it provides a solid foundation for building a communication system between high-level and low-level microcontrollers.
+
+We begun building this out in a branch of the [rds25-project](https://github.com/NU-RDS/rds25-project/tree/feat/high-wrist-high-reward-can), that sent joint encoder data over CAN. This is how we learned about the issues with the CAN bus load, and how we were unable to send sensor data at a reasonable rate. The branch is still available, but it is not being actively developed, as the focus has shifted to other areas of the project.
+
+
+## Changes for the Future
+
+I beleive that in order to get a lot of high-frequency sensor data we would need to:
+
+* Move away from the ODrive, and use our custom motor drivers. This would cut down on the bus load significantly, and allow us to send sensor data at a much higher rate.
+* Use a higher baud rate for the CAN bus, such as 1Mbps. This would allow us to send more data in a shorter amount of time, and reduce the chances of dropped messages and communication errors.
+* Maybe move to a different communication protocol, such as EtherCAT or RS485. This would allow us to send data at a much higher rate, and reduce the chances of dropped messages and communication errors. Doing so would be easy, as you can swap out the `CommsDriver` implementation for a different one, and the rest of the library will work as expected.
+* Use a more robust error handling system, that can handle errors in a more granular way. This would allow us to handle errors more effectively, and reduce the chances of dropped messages and communication errors. Shutting down the system was not easily possible on the high-level microcontroller, with how the system ended up. Ideally, it could open/close a relay to cut power to the motors and other components, and allow the user to reset the system.
+
