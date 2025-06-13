@@ -129,6 +129,7 @@ class CommsController {
     CommandManager _commandManager;
 
     /// @brief The ID of this MCU
+    /// @note This should be unique across all MCUs in the system
     MCUID _me;
 };
 
