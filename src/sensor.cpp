@@ -30,7 +30,7 @@ void SensorDatastream::initialize() {
     _sensorPtr->initialize();
     // reset timer
     // random offset!
-    _lastSendTime = millis() + random(10);
+    _lastSendTime = millis();
 }
 
 void SensorDatastream::tick() {

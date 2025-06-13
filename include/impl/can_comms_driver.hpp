@@ -9,8 +9,8 @@
 
 namespace comms {
 
-static FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> _can1;
-static FlexCAN_T4<CAN2, RX_SIZE_256, TX_SIZE_16> _can2;
+static FlexCAN_T4<CAN1, RX_SIZE_1024, TX_SIZE_16> _can1;
+static FlexCAN_T4<CAN2, RX_SIZE_1024, TX_SIZE_16> _can2;
 
 enum CANBaudRate { CBR_100KBPS, CBR_125KBPS, CBR_250KBPS, CBR_500KBPS, CBR_1MBPS };
 
@@ -101,7 +101,8 @@ class TeensyCANDriver : public CommsDriver {
     }
 
     bool receiveMessage(RawCommsMessage* message) {
-        COMMS_DEBUG_PRINTLN("Listening...");
+        // COMMS_DEBUG_PRINTLN("Listening...");
+
         CAN_message_t res;
         int found = 0;
         switch (_busNum) {

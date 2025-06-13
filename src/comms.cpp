@@ -50,6 +50,7 @@ void CommsController::clearError(ErrorCode error) {
 
 void CommsController::addSensor(uint32_t updateRateMs, uint8_t id, std::shared_ptr<Sensor> sensor) {
     SensorDatastream stream(&_driver, me(), updateRateMs, id, sensor);
+    stream.initialize();
     _sensorDatastreams[id] = stream;
 }
 
@@ -114,7 +115,7 @@ Option<CommsTickResult> CommsController::tick() {
                 // find a sensor status and update it
                 bool found = false;
                 for (SensorStatus &status : _sensorStatuses) {
-                    if (status.sender == info.sender && status.value == sensorPayload.sensorID) {
+                    if (status.sender == info.sender && status.sensorID == sensorPayload.sensorID) {
                         // update this guy
                         found = true;
                         status.value = sensorPayload.value;
@@ -152,6 +153,7 @@ void CommsController::updateDatastreams() {
     // update all of our sensor datastreams
     for (auto s : _sensorDatastreams) {
         s.second.tick();
+        delayMicroseconds(1);
     }
 }
 
