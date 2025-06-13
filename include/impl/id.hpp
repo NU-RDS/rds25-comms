@@ -10,6 +10,8 @@
 
 namespace comms {
 
+/// @brief The IDs of the different MCUs in the system
+/// @note These IDs are used to identify the sender and target of messages
 enum MCUID : uint8_t {
     MCU_HIGH_LEVEL,
     MCU_LOW_LEVEL_0,
@@ -21,6 +23,9 @@ enum MCUID : uint8_t {
     MCU_ANY,
 };
 
+
+/// @brief The IDs of the different message types
+/// @note These IDs are used to identify the type of message being sent
 enum MessageID : uint32_t {
     MID_ERROR_GLOBAL = 0x000,
     MID_ERROR_LL0 = 0x010,
@@ -46,16 +51,27 @@ enum MessageID : uint32_t {
     MID_SENSOR_DATA_PALM = 0x440,
 };
 
+/// @brief The type of content in a message
+/// @note This is used to determine how the message should be processed
 enum MessageContentType : uint8_t { MT_ERROR, MT_HEARTBEAT, MT_COMMAND, MT_SENSOR_DATA };
 
+/// @brief A structure representing the information about a message
+/// @note This includes the sender, target, and type of the message
 struct MessageInfo {
     MCUID sender;
     MCUID target;
     MessageContentType type;
 
+    /// @brief Gets the message ID for this message info
+    /// @return The message ID corresponding to this message info
     static const Option<MessageInfo> getInfo(uint32_t id);
+
+    /// @brief Gets the message ID for a given sender and message type
+    /// @param sender The ID of the sender MCU
     static const Option<uint32_t> getMessageID(MCUID sender, MessageContentType type);
 
+    /// @brief Checks if this message info should be listened to by the given MCU ID
+    /// @param me The ID of the MCU that is checking if it should listen
     bool shouldListen(MCUID me) const {
         if (target == MCU_ANY) return true;
         if (target == me) return true;
@@ -72,6 +88,7 @@ struct MessageInfo {
     }
 };
 
+/// @brief A lookup table for message IDs and their corresponding information
 inline const std::map<uint32_t, MessageInfo> __infoLUT = {
     // Errors — any target
     {MID_ERROR_GLOBAL, {MCU_HIGH_LEVEL, MCU_ANY, MT_ERROR}},

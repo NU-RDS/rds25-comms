@@ -24,6 +24,7 @@
 
 namespace comms {
 
+/// @brief The type of command being sent
 enum CommandType : uint8_t {
     // General Commands, for any MCU
     CMD_BEGIN,  // begin the operation of the device
@@ -233,19 +234,34 @@ class CommandBuffer {
     CommandSlice findNextSlice(const CommandSlice& currentSlice);
 };
 
+
+/// @brief Information about a command that has been sent but not yet acknowledged.
 struct CommandAcknowledgementInfo {
     RawCommsMessage message;
     uint32_t lastSent;
     uint8_t numRetries;
 };
 
+/// @brief Manages sending and receiving commands between MCUs.
 class CommandManager {
    public:
+    /// @brief Constructs a CommandManager with the given driver and ID
+    /// @param driver The communication driver to use for sending messages
+    /// @param me The ID of this MCU
     CommandManager(CommsDriver* driver, MCUID me);
 
+    /// @brief Sends a command to the specified MCU
+    /// @param payload The command payload to send
     void sendCommand(CommandMessagePayload payload);
+
+    /// @brief Handles a command message received from the communication driver
+    /// @note This will parse the command message and call the appropriate command handler
+    /// @param info The information about the received message
+    /// @param message The raw command message
     void handleCommandMessage(MessageInfo info, RawCommsMessage message);
 
+    /// @brief Ticks the command manager, checking for timeouts and retransmissions
+    /// @note This should be called periodically to ensure commands are sent and acknowledged
     void tick();
 
    private:

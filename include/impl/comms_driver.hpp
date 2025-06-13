@@ -20,11 +20,26 @@ struct RawCommsMessage {
 /// @brief HAL for Sending/Recieving these Comms messages
 class CommsDriver {
    public:
+    /// @brief Initializes the communication driver
+    /// @note This should be called once before using the driver
     virtual void install() = 0;
+
+    /// @brief Uninstalls the communication driver
+    /// @note This should be called when the driver is no longer needed
     virtual void uninstall() = 0;
+
+    /// @brief Sends a raw communication message
+    /// @param message The raw communication message to send
+    /// @note This will send the message over the communication bus
     virtual void sendMessage(const RawCommsMessage& message) = 0;
 
-    // message handling for interrupt-based drivers
+    /// @brief Receives a raw communication message
+    /// @param res The received raw communication message
+    /// @return True if a message was received, false if no message was available
+    virtual bool receiveMessage(RawCommsMessage* res) = 0;
+
+    /// @brief Attaches a callback for receiving messages with a specific ID
+    /// @param id The ID of the messages to listen for
     void attachRXCallback(uint32_t id, std::function<void(const RawCommsMessage&)> callback) {
         if (_callbackTable.find(id) == _callbackTable.end()) {
             // a vector doesn't exist yet
@@ -32,8 +47,6 @@ class CommsDriver {
         }
         _callbackTable[id].push_back(callback);
     }
-
-    virtual bool receiveMessage(RawCommsMessage* res) = 0;
 
    private:
     std::unordered_map<uint32_t, std::vector<std::function<void(const RawCommsMessage&)>>>

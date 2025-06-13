@@ -52,6 +52,7 @@ struct ErrorMessagePayload {
     };
 };
 
+/// @brief A structure representing the status of an error managed by the ErrorManager
 struct ManagedErrorStatus {
     Error error;
     uint32_t lastTransmissionTime;
@@ -61,14 +62,45 @@ struct ManagedErrorStatus {
 /// and calling handlers
 class ErrorManager {
    public:
+
+    /// @brief Constructs an ErrorManager with the given driver and ID
+    /// @param driver The communication driver to use for sending messages
+    /// @param me The ID of this MCU
+    /// @note The ErrorManager will use this driver to send error messages
+    /// @note The ID should be unique across all MCUs in the system
     ErrorManager(CommsDriver* driver, MCUID me);
 
+    /// @brief Initializes the error manager
+    /// @param errorRetransitionTimeMs The time in milliseconds to wait before retransmitting an error
     void initialize(uint32_t errorRetransitionTimeMs = 100);
+
+    /// @brief Ticks the error manager, checking for errors to send and retransmit
+    /// @note This should be called periodically to ensure errors are sent and retransmitted
     void tick();
+
+    /// @brief Adds an error handler for a specific severity level
+    /// @param severity The severity level of the error to handle
+    /// @param error A function that takes an Error and handles it
+    /// @note This function will be called whenever an error of the specified severity is reported
     void addErrorHandler(ErrorSeverity severity, std::function<void(Error)> error);
+
+    /// @brief Handles an error message received from the communication driver
+    /// @param sender The sender of the error message
+    /// @param payload The payload of the error message
+    /// @note This will parse the error message and call the appropriate error handler
     void handleErrorRecieve(MessageInfo sender, RawCommsMessage payload);
 
+    /// @brief Reports an error with the given code, severity, and behavior
+    /// @param error The error code to report
+    /// @param severity The severity level of the error
+    /// @param behavior The behavior to take in response to the error
+    /// @note This will send the error message over the communication bus
     void reportError(ErrorCode error, ErrorSeverity severity, ErrorBehavior behavior);
+
+    /// @brief Clears an error with the given code
+    /// @param error The error code to clear
+    /// @note This will remove the error from the error manager and notify any handlers
+    /// @note If the error was latched, it will be unlatched
     void clearError(ErrorCode error);
 
    private:
